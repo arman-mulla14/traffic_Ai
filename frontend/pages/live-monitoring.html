@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live Monitoring | AI Traffic Management System</title>
+    <link rel="stylesheet" href="../css/style.css?v=2.2">
+  <link rel="stylesheet" href="/frontend/css/style.css?v=2.2">
+  <link rel="stylesheet" href="/css/style.css?v=2.2">
+  <style>
+    /* Inline fail-safe icon dimensions */
+    svg { max-width: 100%; box-sizing: border-box; }
+    .sidebar-car-icon svg { width: 52px !important; height: 52px !important; }
+    .sidebar-skyline-svg { width: 130px !important; height: 48px !important; }
+    .nav-link svg { width: 18px !important; height: 18px !important; min-width: 18px; }
+    .datetime-pill svg { width: 15px !important; height: 15px !important; min-width: 15px; }
+    .header-bell-btn svg { width: 18px !important; height: 18px !important; }
+    .traffic-status-box svg { width: 22px !important; height: 22px !important; }
+  </style>
+  <style>
+    .monitoring-grid {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 20px;
+    }
+    .video-viewport {
+      position: relative;
+      width: 100%;
+      height: 520px;
+      background-color: #0B0F19;
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #E2E8F0;
+    }
+    .video-stream-el {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .yolo-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+    .camera-hud-badge {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      background: rgba(15, 32, 66, 0.85);
+      backdrop-filter: blur(4px);
+      color: #FFFFFF;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+    .camera-hud-bottom {
+      position: absolute;
+      bottom: 14px;
+      left: 14px;
+      right: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      pointer-events: none;
+    }
+    .hud-tag {
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(4px);
+      color: #FFFFFF;
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+    }
+    @media (max-width: 1100px) {
+      .monitoring-grid {
+        grid-template-columns: 1fr;
+      }
+      .video-viewport {
+        height: 400px;
+      }
+    }
+
+    /* Multi-Camera Grid Styles */
+    .view-mode-pill-group {
+      display: inline-flex;
+      background: #E2E8F0;
+      border-radius: 8px;
+      padding: 3px;
+      gap: 3px;
+    }
+    .view-mode-pill-btn {
+      border: none;
+      background: transparent;
+      padding: 6px 14px;
+      font-size: 12.5px;
+      font-weight: 600;
+      border-radius: 6px;
+      color: #475569;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+    .view-mode-pill-btn.active {
+      background: #FFFFFF;
+      color: #2878D0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .view-mode-pill-btn:hover:not(.active) {
+      color: #0F172A;
+    }
+
+    .multi-camera-grid {
+      display: grid;
+      gap: 16px;
+      width: 100%;
+    }
+    .multi-camera-grid.grid-2x2 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .multi-camera-grid.grid-all {
+      grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    }
+    @media (max-width: 900px) {
+      .multi-camera-grid.grid-2x2 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .camera-tile-card {
+      background: #0B0F19;
+      border: 1px solid #CBD5E1;
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 2px 8px rgba(11, 27, 61, 0.08);
+      position: relative;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+    }
+    .camera-tile-card:hover {
+      box-shadow: 0 6px 18px rgba(40, 120, 208, 0.22);
+      border-color: #2878D0;
+    }
+    .camera-tile-header {
+      background: #0B1B3D;
+      color: #FFFFFF;
+      padding: 9px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255,255,255,0.12);
+    }
+    .camera-tile-title {
+      font-size: 12.5px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 60%;
+    }
+    .camera-tile-actions {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .camera-tile-actions button {
+      background: rgba(255, 255, 255, 0.12);
+      border: none;
+      color: #FFFFFF;
+      border-radius: 5px;
+      padding: 4px 8px;
+      cursor: pointer;
+      font-size: 11.5px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: background 0.15s ease;
+    }
+    .camera-tile-actions button:hover {
+      background: #2878D0;
+    }
+    .tile-screen-selector-bar {
+      background: #0B1B3D;
+      padding: 6px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .tile-screen-selector-bar select {
+      flex: 1;
+      background: #0F172A;
+      color: #F8FAFC;
+      border: 1px solid #334155;
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 11px;
+      outline: none;
+      cursor: pointer;
+    }
+    .tile-screen-selector-bar select:focus {
+      border-color: #2878D0;
+    }
+    .camera-tile-stream-wrapper {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: #080D1A;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .camera-tile-img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      background: #080D1A;
+    }
+    .camera-tile-footer {
+      background: #0F172A;
+      padding: 7px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #94A3B8;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .camera-tile-footer-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-weight: 600;
+    }
+    .tile-badge-live {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(11, 27, 61, 0.85);
+      backdrop-filter: blur(4px);
+      color: #FFFFFF;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+    .tile-badge-peds {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(168, 85, 247, 0.9);
+      color: #FFFFFF;
+      padding: 3px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 700;
+      display: none;
+    }
+    .add-camera-grid-card {
+      background: #FFFFFF;
+      border: 2px dashed #CBD5E1;
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 240px;
+      cursor: pointer;
+      padding: 24px;
+      text-align: center;
+      transition: all 0.2s ease;
+    }
+    .add-camera-grid-card:hover {
+      border-color: #2878D0;
+      background: #F8FAFC;
+      transform: translateY(-2px);
+    }
+
+    /* 4-Way Intersection AI Traffic Signal Agent HUD */
+    .signal-agent-banner {
+      background: linear-gradient(135deg, #0B1B3D 0%, #162C5B 100%);
+      border: 1px solid #2878D0;
+      border-radius: 12px;
+      padding: 14px 18px;
+      color: #FFFFFF;
+      margin-bottom: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 4px 14px rgba(11, 27, 61, 0.25);
+    }
+    .signal-agent-top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .signal-agent-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14.5px;
+      font-weight: 700;
+      color: #FFFFFF;
+    }
+    .signal-agent-active-badge {
+      background: rgba(0, 186, 99, 0.2);
+      border: 1px solid #00BA63;
+      color: #00BA63;
+      font-size: 11.5px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 20px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .signal-agent-metrics-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      font-size: 12.5px;
+      color: #CBD5E1;
+      background: rgba(0, 0, 0, 0.25);
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .signal-agent-controls-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .signal-quick-btn {
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #FFFFFF;
+      border-radius: 6px;
+      padding: 5px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .signal-quick-btn:hover {
+      background: #2878D0;
+      border-color: #2878D0;
+    }
+    .signal-quick-btn.active-green {
+      background: #00BA63;
+      border-color: #00BA63;
+      box-shadow: 0 0 10px rgba(0, 186, 99, 0.5);
+    }
+
+    /* 3-Lamp Traffic Signal Housing Widget on Tile */
+    .traffic-signal-box {
+      background: #0B0F19;
+      border: 1.5px solid #334155;
+      border-radius: 20px;
+      padding: 4px 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+    }
+    .signal-lamp {
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      transition: all 0.2s ease;
+      display: inline-block;
+    }
+    .signal-lamp.red {
+      background: rgba(239, 68, 68, 0.25);
+    }
+    .signal-lamp.red.active {
+      background: #EF4444;
+      box-shadow: 0 0 10px #EF4444, inset 0 0 4px #FFFFFF;
+    }
+    .signal-lamp.yellow {
+      background: rgba(245, 158, 11, 0.25);
+    }
+    .signal-lamp.yellow.active {
+      background: #F59E0B;
+      box-shadow: 0 0 10px #F59E0B, inset 0 0 4px #FFFFFF;
+    }
+    .signal-lamp.green {
+      background: rgba(0, 186, 99, 0.25);
+    }
+    .signal-lamp.green.active {
+      background: #00BA63;
+      box-shadow: 0 0 12px #00BA63, inset 0 0 4px #FFFFFF;
+    }
+    .signal-countdown-tag {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 12px;
+      margin-left: 2px;
+      letter-spacing: 0.3px;
+    }
+    .signal-countdown-tag.tag-green {
+      background: rgba(0, 186, 99, 0.25);
+      color: #00BA63;
+      border: 1px solid #00BA63;
+    }
+    .signal-countdown-tag.tag-yellow {
+      background: rgba(245, 158, 11, 0.25);
+      color: #F59E0B;
+      border: 1px solid #F59E0B;
+    }
+    .signal-countdown-tag.tag-red {
+      background: rgba(239, 68, 68, 0.25);
+      color: #EF4444;
+      border: 1px solid #EF4444;
+    }
+
+    /* Approach Tag Badge */
+    .approach-road-badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .road-direction-pill {
+      background: rgba(11, 27, 61, 0.85);
+      border: 1px solid rgba(40, 120, 208, 0.4);
+      color: #38BDF8;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 10px;
+      backdrop-filter: blur(4px);
+    }
+  </style>
+</head>
+<body>
+  <div class="app-layout">
+    <!-- SIDEBAR (Master Design Reference) -->
+    <aside class="app-sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-car-icon">
+          <svg width="52" height="52" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M22 14C27 10 37 10 42 14" stroke="#00BA63" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M26 18C29 15 35 15 38 18" stroke="#00BA63" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="32" cy="22" r="1.5" fill="#00BA63"/>
+            <path d="M18 36L22 26C22.6 24.5 24.1 23.5 25.8 23.5H38.2C39.9 23.5 41.4 24.5 42 26L46 36C47.7 36 49 37.3 49 39V46C49 47.1 48.1 48 47 48H45C43.9 48 43 47.1 43 46V44H21V46C21 47.1 20.1 48 19 48H17C15.9 48 15 47.1 15 46V39C15 37.3 16.3 36 18 36Z" stroke="#00BA63" stroke-width="2.5" stroke-linejoin="round"/>
+            <path d="M22.5 35L25 27.5H39L41.5 35H22.5Z" stroke="#00BA63" stroke-width="2" stroke-linejoin="round"/>
+            <circle cx="21" cy="40" r="2.5" fill="#00BA63"/>
+            <circle cx="43" cy="40" r="2.5" fill="#00BA63"/>
+          </svg>
+        </div>
+        <div class="sidebar-brand-title">AI Traffic</div>
+        <div class="sidebar-brand-title">Management</div>
+        <div class="sidebar-brand-subtitle">Smarter Traffic. Safer City.</div>
+      </div>
+
+      <!-- Navigation Items (Exact 8 items in Screenshot Order) -->
+      <nav class="sidebar-nav">
+        <!-- 1. Dashboard -->
+        <a href="/frontend/index.html" class="nav-link">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          Dashboard
+        </a>
+        <!-- 2. Video Management -->
+        <a href="/frontend/pages/video-management.html" class="nav-link">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg>
+          Video Management
+        </a>
+        <!-- 3. Live Monitoring (Active) -->
+        <a href="/frontend/pages/live-monitoring.html" class="nav-link active">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+          Live Monitoring
+        </a>
+        <!-- 4. Traffic Analytics -->
+        <a href="/frontend/pages/traffic-analytics.html" class="nav-link">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+          Traffic Analytics
+        </a>
+        <!-- 5. Incident Management -->
+        <a href="/frontend/pages/incident-management.html" class="nav-link">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>
+          Incident Management
+        </a>
+        <!-- 6. Reports -->
+        <a href="/frontend/pages/reports.html" class="nav-link">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/></svg>
+          Reports
+        </a>
+        <!-- 7. Camera Management -->
+        <a href="/frontend/pages/camera-management.html" class="nav-link">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+          Camera Management
+        </a>
+        <!-- 8. Settings -->
+        <a href="/frontend/pages/settings.html" class="nav-link">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Settings
+        </a>
+      </nav>
+
+      <!-- Bottom Skyline Illustration & Smart City -->
+      <div class="sidebar-footer">
+        <svg class="sidebar-skyline-svg" width="130" height="48" viewBox="0 0 140 50">
+          <path d="M10 50 V30 H22 V18 H32 V5 H40 V22 H48 V12 H58 V50 M58 50 V28 H68 V14 H76 V5 H84 V20 H92 V32 H102 V16 H112 V50 M112 50 V36 H120 V25 H128 V50" stroke="#2563EB" stroke-width="1.6" fill="none"/>
+        </svg>
+        <div class="sidebar-city-text">Smart City</div>
+        <div class="sidebar-city-subtext">Smart Traffic</div>
+      </div>
+    </aside>
+
+    <!-- MAIN APP AREA -->
+    <div class="app-main">
+      <!-- TOP NAVIGATION BAR -->
+      <header class="top-header">
+        <div class="header-left">
+          <button id="sidebar-toggle" class="mobile-toggle" aria-label="Toggle Navigation">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+          </button>
+          
+          <!-- System Online Pill -->
+          <div class="system-online-pill">
+            <span class="status-dot-green"></span>
+            System Online
+          </div>
+
+          <!-- Calendar & Clock Pill -->
+          <div class="datetime-pill">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <span id="header-datetime-text">Apr 14, 2025  15:30:45</span>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <!-- Notification Bell -->
+          <button class="header-bell-btn" aria-label="Notifications" onclick="showToast('2 active traffic safety alerts recorded.');">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span class="bell-badge-count">2</span>
+          </button>
+
+          <!-- Admin Profile Pill -->
+          <div class="header-admin-pill" onclick="window.location.href='/frontend/pages/settings.html';">
+            <div class="admin-avatar-circle">A</div>
+            <div class="admin-name-text">
+              Admin
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+          </div>
+
+          <!-- Traffic Status Box (Top Right Green Box) -->
+          <div class="traffic-status-box">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+            <div class="traffic-status-text">
+              <span class="traffic-status-title">Traffic is Normal</span>
+              <span class="traffic-status-subtitle">All Systems Operational</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- PAGE CONTENT -->
+      <main class="page-container">
+        <!-- Control Header Row -->
+        <div class="page-header-row" style="flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between;">
+          <div class="page-title-block">
+            <h2>Live Camera Monitoring</h2>
+            <p>Real-time high-throughput YOLOv8 vehicle detection &amp; multi-camera surveillance matrix.</p>
+          </div>
+          
+          <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <!-- View Mode Switcher Pill -->
+            <div class="view-mode-pill-group">
+              <button id="view-mode-grid4-btn" class="view-mode-pill-btn active" onclick="setViewMode('grid-2x2')">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                4-Road Intersection AI Agent
+              </button>
+              <button id="view-mode-single-btn" class="view-mode-pill-btn" onclick="setViewMode('single')">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+                Single View
+              </button>
+              <button id="view-mode-gridall-btn" class="view-mode-pill-btn" onclick="setViewMode('grid-all')">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h4v4H4z M10 4h4v4h-4z M16 4h4v4h-4z M4 10h4v4H4z M10 10h4v4h-4z M16 10h4v4h-4z M4 16h4v4H4z M10 16h4v4h-4z M16 16h4v4h-4z"/></svg>
+                All Cameras
+              </button>
+            </div>
+
+            <div class="page-actions-group">
+              <select id="camera-stream-select" class="form-select" style="min-width: 200px;" onchange="switchCameraStream(this.value)">
+                <option value="1">Junction Alpha - North Approach</option>
+              </select>
+              <button class="btn btn-primary" onclick="openNewCameraModal()" title="Connect New Camera to System">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                + Connect Camera
+              </button>
+              <button id="btn-open-stream-modal" class="btn btn-outline" onclick="openStreamModal()" title="Connect Live Stream or Video Link">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                Stream Source
+              </button>
+              <button id="btn-detection-toggle" class="btn btn-primary" onclick="toggleDetectionOverlay()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m10 15 5-3-5-3v6Z"/></svg>
+                Bounding Boxes: ON
+              </button>
+              <button id="btn-stream-toggle" class="btn btn-outline" onclick="toggleStreamPlayback()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+                Pause
+              </button>
+              <button id="btn-snapshot" class="btn btn-outline" onclick="takeStreamSnapshot()" title="Take Snapshot">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+              </button>
+              <button id="btn-fullscreen" class="btn btn-outline" onclick="toggleStreamFullscreen()" title="Fullscreen View">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" x2="14" y1="3" y2="10"/><line x1="3" x2="10" y1="21" y2="14"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 1. SINGLE CAMERA VIEW CONTAINER -->
+        <div id="single-camera-view-container" class="monitoring-grid" style="display: none;">
+          <!-- Main Large Video Preview -->
+          <div class="card" style="padding: 14px;">
+            <div id="video-viewport-wrapper" class="video-viewport">
+              <img id="live-stream-image" src="" class="video-stream-el" alt="Live Camera Feed" onerror="this.onerror=null; this.src='/frontend/assets/live_camera_feed.jpg';">
+              <canvas id="yolo-overlay-canvas" class="yolo-canvas"></canvas>
+
+              <div class="camera-hud-badge">
+                <span class="status-dot-green"></span>
+                <span>LIVE FEED • 1080p @ 30 FPS</span>
+              </div>
+
+              <div class="camera-hud-bottom">
+                <span class="hud-tag" id="cam-hud-info">CAM #1: Main Junction (North Approach)</span>
+                <span class="hud-tag" style="color:#00BA63; font-weight:700;">YOLOv8 Active (CPU)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Statistics Sidebar -->
+          <div style="display: flex; flex-direction: column; gap: 18px;">
+            <!-- Live Metrics Card -->
+            <div class="card" style="margin-bottom:0;">
+              <div class="card-header">
+                <div class="card-title">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+                  Real-time Telemetry
+                </div>
+              </div>
+              <div class="card-body" style="display: flex; flex-direction: column; gap: 14px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <span style="font-size:13px; color:#64748B;">Vehicles in Frame</span>
+                  <span id="stat-live-count" style="font-size:18px; font-weight:700; color:#2878D0;">18</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <span style="font-size:13px; color:#64748B;">Current Density</span>
+                  <span id="stat-live-density" style="font-size:16px; font-weight:700; color:#F59E0B;">58.4%</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <span style="font-size:13px; color:#64748B;">Queue Length</span>
+                  <span id="stat-live-queue" style="font-size:14px; font-weight:600; color:#0F172A;">4 Vehicles</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <span style="font-size:13px; color:#64748B;">Inference Frame Rate</span>
+                  <span id="stat-live-fps" style="font-size:14px; font-weight:700; color:#00BA63;">24.2 FPS</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Vehicle Classification Breakdown Card -->
+            <div class="card" style="margin-bottom:0;">
+              <div class="card-header">
+                <div class="card-title">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 10 10h-10z"/></svg>
+                  Vehicle Breakdown
+                </div>
+              </div>
+              <div class="card-body" style="display: flex; flex-direction: column; gap: 10px;">
+                <div style="display:flex; justify-content:space-between; font-size:13px; align-items:center;">
+                  <span style="color:#64748B; display:flex; align-items:center; gap:6px;">
+                    <span style="width:8px; height:8px; border-radius:50%; background:#A855F7; display:inline-block;"></span>
+                    Pedestrians (Class 0)
+                  </span>
+                  <strong id="stat-count-peds" style="color:#A855F7; font-weight:700;">0</strong>
+                </div>
+                <div style="display:flex; justify-content:space-between; font-size:13px; align-items:center;">
+                  <span style="color:#64748B; display:flex; align-items:center; gap:6px;">
+                    <span style="width:8px; height:8px; border-radius:50%; background:#2878D0; display:inline-block;"></span>
+                    Cars (Class 2)
+                  </span>
+                  <strong id="stat-count-cars" style="color:#0F172A;">10</strong>
+                </div>
+                <div style="display:flex; justify-content:space-between; font-size:13px; align-items:center;">
+                  <span style="color:#64748B; display:flex; align-items:center; gap:6px;">
+                    <span style="width:8px; height:8px; border-radius:50%; background:#F59E0B; display:inline-block;"></span>
+                    Motorcycles (Class 3)
+                  </span>
+                  <strong id="stat-count-motos" style="color:#0F172A;">2</strong>
+                </div>
+                <div style="display:flex; justify-content:space-between; font-size:13px; align-items:center;">
+                  <span style="color:#64748B; display:flex; align-items:center; gap:6px;">
+                    <span style="width:8px; height:8px; border-radius:50%; background:#16A765; display:inline-block;"></span>
+                    Buses (Class 5)
+                  </span>
+                  <strong id="stat-count-buses" style="color:#0F172A;">1</strong>
+                </div>
+                <div style="display:flex; justify-content:space-between; font-size:13px; align-items:center;">
+                  <span style="color:#64748B; display:flex; align-items:center; gap:6px;">
+                    <span style="width:8px; height:8px; border-radius:50%; background:#EF4444; display:inline-block;"></span>
+                    Trucks (Class 7)
+                  </span>
+                  <strong id="stat-count-trucks" style="color:#0F172A;">1</strong>
+                </div>
+              </div>
+            </div>
+
+            <!-- Advanced Analytics & Safety Insights Card -->
+            <div class="card" style="margin-bottom:0;">
+              <div class="card-header">
+                <div class="card-title">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                  Advanced Analytics
+                </div>
+              </div>
+              <div class="card-body" style="display: flex; flex-direction: column; gap: 10px; font-size: 13px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <span style="color:#64748B;">Congestion Index</span>
+                  <span id="stat-congestion-badge" class="badge badge-info" style="font-weight:700;">MODERATE</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <span style="color:#64748B;">Est. Average Speed</span>
+                  <strong id="stat-avg-speed" style="color:#0F172A;">42.0 km/h</strong>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <span style="color:#64748B;">Est. Carbon Emissions</span>
+                  <strong id="stat-carbon-emission" style="color:#0F172A;">4.8 kg CO₂/h</strong>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <span style="color:#64748B;">Pedestrian Safety</span>
+                  <span id="stat-ped-safety" class="badge badge-success"><span class="badge-dot"></span> SECURE</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Active Camera Details Card -->
+            <div class="card" style="margin-bottom:0;">
+              <div class="card-header">
+                <div class="card-title">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+                  Camera Configuration
+                </div>
+              </div>
+              <div class="card-body" style="display: flex; flex-direction: column; gap: 8px; font-size: 12.5px;">
+                <div>
+                  <span style="color:#64748B; display:block;">Camera Name:</span>
+                  <strong id="cam-detail-name" style="color:#0F172A;">Junction Alpha - North Approach</strong>
+                </div>
+                <div>
+                  <span style="color:#64748B; display:block;">Location:</span>
+                  <span id="cam-detail-loc" style="color:#1E293B;">North Highway Interchange &amp; 4th Ave</span>
+                </div>
+                <div>
+                  <span style="color:#64748B; display:block;">Type &amp; Protocol:</span>
+                  <span id="cam-detail-type" style="color:#1E293B;">CCTV (MJPEG / RTSP)</span>
+                </div>
+                <div style="margin-top: 6px;">
+                  <span class="badge badge-success"><span class="status-dot-green"></span> ACTIVE STREAM</span>
+                </div>
+                <button class="btn btn-primary btn-sm" style="margin-top: 10px; width: 100%;" onclick="openStreamModal()">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                  Connect Video Stream Link
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. MULTI-CAMERA REAL-TIME GRID VIEW CONTAINER -->
+        <div id="multi-camera-view-container" style="display: flex; flex-direction: column; gap: 14px;">
+          
+          <!-- 4-WAY INTERSECTION AUTONOMOUS AI TRAFFIC SIGNAL AGENT HUD -->
+          <div id="signal-agent-hud-banner" class="signal-agent-banner">
+            <div class="signal-agent-top-row">
+              <div class="signal-agent-title">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#00BA63" stroke-width="2.2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+                <span>4-Road Intersection AI Traffic Signal Agent</span>
+                <span class="signal-agent-active-badge" id="agent-mode-badge">
+                  <span class="status-dot-green"></span>
+                  AI OPTIMIZER ACTIVE
+                </span>
+              </div>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span style="font-size:12px; color:#94A3B8;">Cycle Time:</span>
+                <strong style="color:#FFFFFF; font-size:13px;" id="agent-cycle-time-label">120s</strong>
+                <button class="signal-quick-btn" onclick="toggleAgentAutonomous()" id="btn-agent-toggle" title="Toggle AI Adaptive Optimization">
+                  🤖 Mode: Adaptive AI
+                </button>
+              </div>
+            </div>
+
+            <!-- Active Phase & Signal Allocations Strip -->
+            <div class="signal-agent-metrics-row">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span style="color:#94A3B8;">Active Green Phase:</span>
+                <span id="agent-active-phase-badge" class="badge" style="background:#00BA63; color:#FFFFFF; font-size:12px; font-weight:700; padding:4px 12px; border-radius:14px;">
+                  🟢 NORTH APPROACH (38s remaining)
+                </span>
+              </div>
+              <div style="display:flex; align-items:center; gap:12px; margin-left:auto; font-size:12px; flex-wrap:wrap;">
+                <span>North: <strong id="alloc-tag-north" style="color:#38BDF8;">38s</strong></span>
+                <span>East: <strong id="alloc-tag-east" style="color:#38BDF8;">26s</strong></span>
+                <span>South: <strong id="alloc-tag-south" style="color:#38BDF8;">34s</strong></span>
+                <span>West: <strong id="alloc-tag-west" style="color:#38BDF8;">22s</strong></span>
+                <span style="color:#94A3B8;">| Total Cycles: <strong id="agent-cycles-count" style="color:#FFFFFF;">12</strong></span>
+              </div>
+            </div>
+
+            <!-- Webster Reasoning & Emergency Controls -->
+            <div class="signal-agent-controls-row">
+              <div style="font-size:12px; color:#E2E8F0; display:flex; align-items:center; gap:8px; flex:1; min-width:280px;">
+                <span style="color:#F59E0B; font-weight:700;">AI Optimization Logic:</span>
+                <span id="agent-reasoning-text" style="color:#CBD5E1; font-style:italic; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:650px;">
+                  Webster Saturation: Proportional green times dynamically assigned to discharge queue.
+                </span>
+              </div>
+              <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                <button class="signal-quick-btn" onclick="forceAgentPhase('NORTH')">Force North</button>
+                <button class="signal-quick-btn" onclick="forceAgentPhase('EAST')">Force East</button>
+                <button class="signal-quick-btn" onclick="forceAgentPhase('SOUTH')">Force South</button>
+                <button class="signal-quick-btn" onclick="forceAgentPhase('WEST')">Force West</button>
+                <button class="signal-quick-btn" onclick="triggerEmergencyClear()" id="btn-emergency-clear" style="border-color:#EF4444; color:#FCA5A5;">
+                  🚨 Emergency Corridor
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Multi-Camera Control Strip -->
+          <div style="display: flex; justify-content: space-between; align-items: center; background: #FFFFFF; border: 1px solid #E2E8F0; padding: 12px 18px; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); flex-wrap: wrap; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <span class="status-dot-green"></span>
+              <strong style="color: #0F172A; font-size: 14px;" id="grid-status-header">Real-Time 4-Road Intersection Camera Feeds</strong>
+              <span class="badge badge-info" id="grid-cameras-count-badge">4 Streams Active</span>
+              <span style="color: #64748B; font-size: 12px;">YOLOv8 Dynamic Traffic Estimation Active</span>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn btn-sm btn-outline" onclick="refreshGridFeeds()">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                Refresh Feeds
+              </button>
+              <button class="btn btn-sm btn-primary" onclick="openNewCameraModal()">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                + Connect Another Camera
+              </button>
+            </div>
+          </div>
+
+          <!-- The Dynamic Camera Grid -->
+          <div id="multi-camera-grid" class="multi-camera-grid grid-2x2">
+            <!-- Dynamically populated camera stream tiles -->
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Live Stream Configuration Modal -->
+  <div id="stream-config-modal" class="modal-backdrop">
+    <div class="modal-content" style="max-width: 580px;">
+      <div class="modal-header">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:34px;height:34px;border-radius:8px;background:#EEF6FF;color:#2878D0;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg>
+          </div>
+          <div>
+            <h3 style="font-size:16px;margin:0;font-weight:700;color:#0F172A;">Connect Video Stream / Live Link</h3>
+            <p style="font-size:12px;color:#64748B;margin:2px 0 0;">Attach any live stream link, RTSP feed, webcam, or uploaded video to this camera.</p>
+          </div>
+        </div>
+        <button class="modal-close-btn" onclick="closeStreamModal()">✕</button>
+      </div>
+      <div class="modal-body" style="padding: 20px;">
+        <!-- Target Camera Select -->
+        <div class="form-group" style="margin-bottom:14px;">
+          <label style="display:block;font-size:12.5px;font-weight:600;margin-bottom:6px;color:#1E293B;">Target Camera to Configure</label>
+          <select id="modal-select-camera" class="form-select" style="width:100%;padding:9px 12px;border:1px solid #CBD5E1;border-radius:8px;font-size:13px;" onchange="onModalCameraSelected(this.value)">
+            <!-- Dynamically populated -->
+          </select>
+        </div>
+
+        <!-- Tab Choice -->
+        <div style="display:flex;gap:10px;margin-bottom:18px;border-bottom:1px solid #E2E8F0;padding-bottom:12px;flex-wrap:wrap;">
+          <button type="button" id="modal-tab-url" class="btn btn-sm btn-primary" onclick="setModalTab('url')">Live Link / URL / Webcam</button>
+          <button type="button" id="modal-tab-library" class="btn btn-sm btn-outline" onclick="setModalTab('library')">Choose Uploaded Video</button>
+          <button type="button" id="modal-tab-upload" class="btn btn-sm btn-outline" onclick="setModalTab('upload')" style="display:inline-flex;align-items:center;gap:6px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+            Upload Video File
+          </button>
+        </div>
+
+        <!-- Mode 1: URL input -->
+        <div id="modal-url-pane">
+          <div class="form-group" style="margin-bottom:14px;">
+            <label style="display:block;font-size:12.5px;font-weight:600;margin-bottom:6px;color:#1E293B;">Live Video Stream URL (RTSP / HTTP / Web Video / 0 for Webcam)</label>
+            <input type="text" id="input-modal-stream-url" class="form-control" placeholder="e.g. https://.../traffic_stream.mp4 or rtsp://192.168.1.100:554/stream" style="width:100%;padding:9px 12px;border:1px solid #CBD5E1;border-radius:8px;font-size:13px;">
+            <small style="color:#64748B;font-size:11.5px;margin-top:5px;display:block;">Supports direct HTTP/HTTPS video links, RTSP IP surveillance cameras, or online video streams.</small>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center;">
+            <span style="font-size:12px;color:#64748B;font-weight:500;">Quick Presets:</span>
+            <button type="button" class="btn btn-sm btn-outline" style="padding:3px 10px;font-size:11.5px;" onclick="applyStreamPreset('sample')">Sample Traffic Video</button>
+            <button type="button" class="btn btn-sm btn-outline" style="padding:3px 10px;font-size:11.5px;" onclick="applyStreamPreset('webcam')">Local Webcam (0)</button>
+            <button type="button" class="btn btn-sm btn-outline" style="padding:3px 10px;font-size:11.5px;" onclick="applyStreamPreset('urban')">Urban Junction Video</button>
+          </div>
+        </div>
+
+        <!-- Mode 2: Pick from Library -->
+        <div id="modal-library-pane" style="display:none;">
+          <div class="form-group" style="margin-bottom:14px;">
+            <label style="display:block;font-size:12.5px;font-weight:600;margin-bottom:6px;color:#1E293B;">Select Uploaded Video from System Library</label>
+            <select id="select-modal-library-video" class="form-select" style="width:100%;padding:9px 12px;border:1px solid #CBD5E1;border-radius:8px;font-size:13px;">
+              <option value="">Loading recorded videos...</option>
+            </select>
+            <small style="color:#64748B;font-size:11.5px;margin-top:5px;display:block;">Selected video will stream and loop continuously with real-time YOLOv8 vehicle detection.</small>
+          </div>
+
+          <!-- Quick Upload Trigger from inside Library tab -->
+          <div style="margin-top:12px;padding:12px 14px;background:#F8FAFC;border:1px dashed #CBD5E1;border-radius:8px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+            <div>
+              <strong style="display:block;font-size:12.5px;color:#0F172A;">Need to upload a new video?</strong>
+              <span style="font-size:11.5px;color:#64748B;">Upload MP4, AVI, or MOV to stream directly to this camera.</span>
+            </div>
+            <button type="button" class="btn btn-sm btn-primary" onclick="setModalTab('upload')" style="white-space:nowrap;display:inline-flex;align-items:center;gap:6px;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+              Upload Video
+            </button>
+          </div>
+        </div>
+
+        <!-- Mode 3: Direct File Upload to Camera -->
+        <div id="modal-upload-pane" style="display:none;">
+          <div id="modal-video-dropzone" style="border: 2px dashed #2878D0; border-radius: 10px; padding: 26px 20px; text-align: center; cursor: pointer; background: #F0F7FF; transition: all 0.2s ease;" onclick="document.getElementById('modal-video-file-input').click()">
+            <div style="width: 46px; height: 46px; border-radius: 50%; background: #DBEAFE; color: #2878D0; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 10px;">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+            </div>
+            <div style="font-size: 14px; font-weight: 700; color: #0F172A; margin-bottom: 4px;">Select Video File to Upload</div>
+            <div style="font-size: 12px; color: #64748B; margin-bottom: 12px;">MP4, AVI, MOV recordings (up to 500 MB)</div>
+            <input type="file" id="modal-video-file-input" accept="video/mp4,video/avi,video/quicktime,video/mkv" style="display:none;" onchange="handleModalVideoUpload(this.files[0])">
+            <button type="button" class="btn btn-sm btn-primary" onclick="event.stopPropagation(); document.getElementById('modal-video-file-input').click();">
+              📁 Choose Video File
+            </button>
+          </div>
+
+          <!-- Upload Progress Status -->
+          <div id="modal-upload-progress" style="display:none; margin-top: 14px; padding: 12px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px;">
+            <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:6px;">
+              <span id="modal-upload-status" style="color:#2878D0; font-weight:600;">Uploading video...</span>
+              <span id="modal-upload-pct" style="color:#64748B; font-weight:600;">0%</span>
+            </div>
+            <div style="width:100%; height:7px; background:#E2E8F0; border-radius:4px; overflow:hidden;">
+              <div id="modal-upload-bar" style="width:0%; height:100%; background:#2878D0; transition:width 0.3s ease;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer" style="padding: 14px 20px;border-top:1px solid #E2E8F0;display:flex;justify-content:flex-end;gap:10px;">
+        <button class="btn btn-outline" onclick="closeStreamModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveCameraStreamConfig()">Apply Live Stream</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Connect / Register New Camera -->
+  <div id="new-camera-modal" class="modal-backdrop">
+    <div class="modal-content" style="max-width: 600px;">
+      <div class="modal-header">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:36px;height:36px;border-radius:8px;background:#EBF5FF;color:#2878D0;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+          </div>
+          <div>
+            <h3 style="font-size:16px;margin:0;font-weight:700;color:#0F172A;">Connect &amp; Register Camera</h3>
+            <p style="font-size:12px;color:#64748B;margin:2px 0 0;">Add an RTSP CCTV camera, live IP stream, webcam, or video feed to real-time monitoring.</p>
+          </div>
+        </div>
+        <button class="modal-close-btn" onclick="closeNewCameraModal()">✕</button>
+      </div>
+      <div class="modal-body" style="padding: 20px;">
+        <div class="form-group" style="margin-bottom:12px;">
+          <label style="display:block;font-size:12.5px;font-weight:600;margin-bottom:5px;color:#1E293B;">Camera Name *</label>
+          <input type="text" id="input-new-cam-name" class="form-control" placeholder="e.g. South Bypass - Flyover Ramp" style="width:100%;padding:8px 12px;border:1px solid #CBD5E1;border-radius:8px;font-size:13px;">
+        </div>
+        <div class="form-group" style="margin-bottom:12px;">
+          <label style="display:block;font-size:12.5px;font-weight:600;margin-bottom:5px;color:#1E293B;">Location / Sector *</label>
+          <input type="text" id="input-new-cam-location" class="form-control" placeholder="e.g. Ring Road Junction 14" style="width:100%;padding:8px 12px;border:1px solid #CBD5E1;border-radius:8px;font-size:13px;">
+        </div>
+        <div class="form-group" style="margin-bottom:14px;">
+          <label style="display:block;font-size:12.5px;font-weight:600;margin-bottom:5px;color:#1E293B;">Camera Type</label>
+          <select id="select-new-cam-type" class="form-select" style="width:100%;padding:8px 12px;border:1px solid #CBD5E1;border-radius:8px;font-size:13px;">
+            <option value="CCTV (RTSP HD)">CCTV (RTSP HD 1080p)</option>
+            <option value="Traffic PTZ Camera">Traffic PTZ Camera (IP Stream)</option>
+            <option value="Highway Toll Gate Cam">Highway Toll Gate Cam</option>
+            <option value="Pedestrian Crossing Sensor">Pedestrian Crossing Sensor</option>
+            <option value="Local Webcam Device">Local Webcam Device (USB)</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-bottom:14px;">
+          <label style="display:block;font-size:12.5px;font-weight:600;margin-bottom:5px;color:#1E293B;">Stream Source Link / URL or Uploaded Video</label>
+          <div style="display:flex;gap:8px;margin-bottom:8px;">
+            <input type="text" id="input-new-cam-stream-url" class="form-control" placeholder="rtsp://192.168.1.100:554/live or http://.../stream.mp4 or 0" style="flex:1;padding:8px 12px;border:1px solid #CBD5E1;border-radius:8px;font-size:13px;">
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+            <span style="font-size:11.5px;color:#64748B;">Presets:</span>
+            <button type="button" class="btn btn-sm btn-outline" style="padding:2px 8px;font-size:11px;" onclick="document.getElementById('input-new-cam-stream-url').value='datasets/sample_traffic.mp4'">Sample Video</button>
+            <button type="button" class="btn btn-sm btn-outline" style="padding:2px 8px;font-size:11px;" onclick="document.getElementById('input-new-cam-stream-url').value='0'">Webcam (0)</button>
+            <button type="button" class="btn btn-sm btn-outline" style="padding:2px 8px;font-size:11px;" onclick="document.getElementById('input-new-cam-stream-url').value='storage/uploads/01d80a078714_15464791_3840_2160_30fps.mp4'">Urban Rush Video</button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer" style="padding:14px 20px;border-top:1px solid #E2E8F0;display:flex;justify-content:flex-end;gap:10px;">
+        <button class="btn btn-outline" onclick="closeNewCameraModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="submitCreateCamera()">Save &amp; Connect Camera</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Check / Inspect Video Feed Modal -->
+  <div id="check-video-modal" class="modal-backdrop">
+    <div class="modal-content" style="max-width: 760px;">
+      <div class="modal-header">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:34px;height:34px;border-radius:8px;background:#EEF6FF;color:#2878D0;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+          </div>
+          <div>
+            <h3 style="font-size:16px;margin:0;font-weight:700;color:#0F172A;" id="check-modal-title">Inspect Video Feed</h3>
+            <p style="font-size:12px;color:#64748B;margin:2px 0 0;" id="check-modal-subtitle">Live stream playback with real-time detection telemetry.</p>
+          </div>
+        </div>
+        <button class="modal-close-btn" onclick="closeCheckVideoModal()">✕</button>
+      </div>
+      <div class="modal-body" style="padding: 16px;">
+        <div style="width: 100%; height: 380px; background: #000; border-radius: 8px; overflow: hidden; display: flex; align-items: center; justify-content: center; position: relative; margin-bottom: 14px;">
+          <img id="check-modal-img" src="" alt="Stream Preview" style="width: 100%; height: 100%; object-fit: cover;">
+          <div style="position: absolute; top: 12px; left: 12px; background: rgba(11,27,61,0.85); color: #fff; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; display: flex; align-items: center; gap: 6px;">
+            <span class="status-dot-green"></span>
+            <span id="check-modal-badge">YOLOv8 LIVE INFERENCE</span>
+          </div>
+        </div>
+
+        <!-- Quick Switcher Bar Inside Modal -->
+        <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 12px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+          <div style="flex: 1; min-width: 260px;">
+            <label style="font-size: 12px; font-weight: 600; color: #1E293B; display: block; margin-bottom: 4px;">Switch Video for this Screen:</label>
+            <select id="check-modal-select-video" class="form-select" style="width: 100%; padding: 7px 10px; font-size: 12.5px; border: 1px solid #CBD5E1; border-radius: 6px;" onchange="applyVideoToCheckedCamera(this.value)">
+              <!-- Populated with all videos -->
+            </select>
+          </div>
+          <div style="display: flex; gap: 8px; align-items: flex-end;">
+            <button type="button" class="btn btn-outline btn-sm" onclick="maximizeFromCheckModal()">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" x2="14" y1="3" y2="10"/><line x1="3" x2="10" y1="21" y2="14"/></svg>
+              Maximize Full Screen
+            </button>
+            <button type="button" class="btn btn-primary btn-sm" onclick="closeCheckVideoModal()">Done</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/frontend/js/api.js?v=6.5"></script>
+  <script src="/frontend/js/app.js?v=6.5"></script>
+  <script src="/frontend/js/live-monitoring.js?v=6.5"></script>
+</body>
+</html>

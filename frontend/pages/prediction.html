@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Traffic Prediction | AI Traffic Management</title>
+  <link rel="stylesheet" href="/frontend/css/style.css">
+  <link rel="stylesheet" href="/frontend/css/dashboard.css">
+  <link rel="stylesheet" href="/frontend/css/responsive.css">
+  <script src="/frontend/assets/chart.umd.min.js"></script>
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Left Sidebar -->
+    <aside class="app-sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-icon">AI</div>
+        <div class="brand-text">
+          <h1>Traffic AI</h1>
+          <span>Management System</span>
+        </div>
+      </div>
+      
+      <nav class="sidebar-nav">
+        <div class="nav-section-title">Core Operations</div>
+        <a href="/frontend/index.html" class="nav-link">
+          <span class="nav-icon">📊</span> Dashboard
+        </a>
+        <a href="/frontend/pages/live-monitoring.html" class="nav-link">
+          <span class="nav-icon">📹</span> Live Monitoring
+        </a>
+        <a href="/frontend/pages/video-analysis.html" class="nav-link">
+          <span class="nav-icon">🎞️</span> Video Analysis
+        </a>
+
+        <div class="nav-section-title">Analytics & AI</div>
+        <a href="/frontend/pages/analytics.html" class="nav-link">
+          <span class="nav-icon">📈</span> Traffic Analytics
+        </a>
+        <a href="/frontend/pages/prediction.html" class="nav-link active">
+          <span class="nav-icon">🔮</span> Traffic Prediction
+        </a>
+        <a href="/frontend/pages/signal-optimization.html" class="nav-link">
+          <span class="nav-icon">🚦</span> Signal Optimization
+        </a>
+
+        <div class="nav-section-title">System & Records</div>
+        <a href="/frontend/pages/alerts.html" class="nav-link">
+          <span class="nav-icon">⚠️</span> Incident Alerts
+        </a>
+        <a href="/frontend/pages/reports.html" class="nav-link">
+          <span class="nav-icon">📄</span> Reports (PDF/CSV)
+        </a>
+        <a href="/frontend/pages/settings.html" class="nav-link">
+          <span class="nav-icon">⚙️</span> Settings
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="status-row">
+          <span>Engine:</span>
+          <strong id="system-device-badge">Inference: CPU</strong>
+        </div>
+        <div>Model: Holt-Winters (Level+Trend)</div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="app-main">
+      <header class="app-header">
+        <div class="header-title-block">
+          <h2>Predictive Traffic Forecasting</h2>
+          <p>Statistical time-series forecasting with Holt's linear trend & MAE validation</p>
+        </div>
+        <div class="header-status-bar">
+          <div id="pred-model-status-pill" class="status-badge online">
+            <span class="status-indicator-dot pulse"></span> Ready
+          </div>
+          <div id="system-clock" class="clock-display">UTC --:--:--</div>
+        </div>
+      </header>
+
+      <div class="app-content">
+        <!-- Model Diagnostic Cards -->
+        <div class="metrics-grid">
+          <div class="metric-card info">
+            <div class="metric-header">
+              <span class="metric-title">Forecasting Algorithm</span>
+              <span class="metric-icon">📐</span>
+            </div>
+            <div id="pred-model-name" class="metric-value" style="font-size: 18px; line-height: 1.3;">
+              Holt-Winters Linear
+            </div>
+            <div class="metric-subtitle">Double Exponential Smoothing</div>
+          </div>
+
+          <div class="metric-card success">
+            <div class="metric-header">
+              <span class="metric-title">Forecast Accuracy (MAE)</span>
+              <span class="metric-icon">🎯</span>
+            </div>
+            <div id="pred-mae-score" class="metric-value">--</div>
+            <div class="metric-subtitle">Mean Absolute Error (vehicles/min)</div>
+          </div>
+
+          <div class="metric-card warning">
+            <div class="metric-header">
+              <span class="metric-title">Training Samples</span>
+              <span class="metric-icon">🔢</span>
+            </div>
+            <div id="pred-sample-count" class="metric-value">0</div>
+            <div class="metric-subtitle">Historical intervals analyzed</div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-header">
+              <span class="metric-title">Data Freshness</span>
+              <span class="metric-icon">⏱️</span>
+            </div>
+            <div id="pred-freshness" class="metric-value">--</div>
+            <div class="metric-subtitle">Seconds since last observation</div>
+          </div>
+        </div>
+
+        <!-- Demonstration Notice and Seeder -->
+        <div id="pred-insufficient-banner" class="banner-notice warning" style="display: none;">
+          <div>
+            <strong>Notice: Insufficient Historical Observations</strong><br>
+            <span id="pred-insufficient-msg">Minimum 5 recorded intervals required to train baseline forecasting model.</span>
+          </div>
+          <button id="btn-seed-data" class="btn btn-secondary btn-sm" style="margin-left: auto;">
+            ⚡ Seed 12 Historical Intervals for Testing
+          </button>
+        </div>
+
+        <!-- Forecast Chart -->
+        <div class="panel">
+          <div class="panel-header">
+            <div>
+              <h3 class="panel-title"><span>🔮</span> Projected Vehicle Flow Horizons (5, 10, 15, 30 Minutes)</h3>
+              <span class="panel-subtitle">Historical observations vs projected future volume with 95% confidence bounds</span>
+            </div>
+            <button id="btn-recalculate-pred" class="btn btn-primary btn-sm">Recalculate Forecast</button>
+          </div>
+
+          <div style="height: 320px; position: relative;">
+            <canvas id="predictionChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Forecast Data Table -->
+        <div class="panel">
+          <div class="panel-header">
+            <div>
+              <h3 class="panel-title"><span>📋</span> Future Horizon Estimates</h3>
+              <span class="panel-subtitle">Predicted flow rate, projected density, and confidence bounds</span>
+            </div>
+          </div>
+
+          <div class="data-table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Horizon</th>
+                  <th>Target Timestamp (UTC)</th>
+                  <th>Predicted Flow (veh/min)</th>
+                  <th>Projected Density Score</th>
+                  <th>Confidence Interval (Lower - Upper)</th>
+                  <th>Anticipated Congestion</th>
+                </tr>
+              </thead>
+              <tbody id="prediction-table-tbody">
+                <tr>
+                  <td colspan="6" style="text-align: center; color: var(--text-dim); padding: 24px;">
+                    Awaiting forecast calculation...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="/frontend/js/api.js"></script>
+  <script src="/frontend/js/app.js"></script>
+  <script src="/frontend/js/prediction.js"></script>
+</body>
+</html>

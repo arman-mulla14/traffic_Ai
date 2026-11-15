@@ -1,0 +1,12 @@
+{
+  "detection_model": "yolov8n.pt",
+  "confidence_threshold": 0.85,
+  "iou_threshold": 0.75,
+  "processing_fps": 120,
+  "density_threshold": 75,
+  "wrong_way_sensitivity": "HIGH",
+  "stopped_vehicle_seconds": 3,
+  "auto_purge_days": 30,
+  "alert_notifications": true,
+  "device": "cpu"
+}

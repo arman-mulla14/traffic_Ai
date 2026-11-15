@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Signal Optimization | AI Traffic Management</title>
+  <link rel="stylesheet" href="/frontend/css/style.css">
+  <link rel="stylesheet" href="/frontend/css/dashboard.css">
+  <link rel="stylesheet" href="/frontend/css/responsive.css">
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Left Sidebar -->
+    <aside class="app-sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-icon">AI</div>
+        <div class="brand-text">
+          <h1>Traffic AI</h1>
+          <span>Management System</span>
+        </div>
+      </div>
+      
+      <nav class="sidebar-nav">
+        <div class="nav-section-title">Core Operations</div>
+        <a href="/frontend/index.html" class="nav-link">
+          <span class="nav-icon">📊</span> Dashboard
+        </a>
+        <a href="/frontend/pages/live-monitoring.html" class="nav-link">
+          <span class="nav-icon">📹</span> Live Monitoring
+        </a>
+        <a href="/frontend/pages/video-analysis.html" class="nav-link">
+          <span class="nav-icon">🎞️</span> Video Analysis
+        </a>
+
+        <div class="nav-section-title">Analytics & AI</div>
+        <a href="/frontend/pages/analytics.html" class="nav-link">
+          <span class="nav-icon">📈</span> Traffic Analytics
+        </a>
+        <a href="/frontend/pages/prediction.html" class="nav-link">
+          <span class="nav-icon">🔮</span> Traffic Prediction
+        </a>
+        <a href="/frontend/pages/signal-optimization.html" class="nav-link active">
+          <span class="nav-icon">🚦</span> Signal Optimization
+        </a>
+
+        <div class="nav-section-title">System & Records</div>
+        <a href="/frontend/pages/alerts.html" class="nav-link">
+          <span class="nav-icon">⚠️</span> Incident Alerts
+        </a>
+        <a href="/frontend/pages/reports.html" class="nav-link">
+          <span class="nav-icon">📄</span> Reports (PDF/CSV)
+        </a>
+        <a href="/frontend/pages/settings.html" class="nav-link">
+          <span class="nav-icon">⚙️</span> Settings
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="status-row">
+          <span>Engine:</span>
+          <strong id="system-device-badge">Inference: CPU</strong>
+        </div>
+        <div>Optimization: Webster's Model</div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="app-main">
+      <header class="app-header">
+        <div class="header-title-block">
+          <h2>4-Way Intersection Signal Optimization</h2>
+          <p>Adaptive green phase timing simulation based on measured traffic volume & Webster's formula</p>
+        </div>
+        <div class="header-status-bar">
+          <div class="status-badge warning">
+            <span class="status-indicator-dot pulse"></span> Advisory Simulation Mode
+          </div>
+          <div id="system-clock" class="clock-display">UTC --:--:--</div>
+        </div>
+      </header>
+
+      <div class="app-content">
+        <!-- Safety Banner -->
+        <div class="banner-notice info">
+          <span>🛡️</span>
+          <div>
+            <strong>Safety Protocol:</strong> Signal timings are computed for simulation and advisory evaluation only. Real-world public intersection controllers are never actuated.
+          </div>
+        </div>
+
+        <!-- Intersection Simulation and Controls -->
+        <div class="intersection-sim-wrapper">
+          <!-- 4-Way Intersection Diagram -->
+          <div class="intersection-map">
+            <div class="sim-road-vertical"></div>
+            <div class="sim-road-horizontal"></div>
+            <div class="sim-junction-box">INTERSECTION<br>ALPHA</div>
+
+            <!-- North Signal Head -->
+            <div class="signal-head north" id="head-north">
+              <div class="signal-bulb red active" id="bulb-north-red"></div>
+              <div class="signal-bulb amber" id="bulb-north-amber"></div>
+              <div class="signal-bulb green" id="bulb-north-green"></div>
+              <div class="signal-label">N: <span id="label-n-time">30s</span></div>
+            </div>
+
+            <!-- South Signal Head -->
+            <div class="signal-head south" id="head-south">
+              <div class="signal-bulb red active" id="bulb-south-red"></div>
+              <div class="signal-bulb amber" id="bulb-south-amber"></div>
+              <div class="signal-bulb green" id="bulb-south-green"></div>
+              <div class="signal-label">S: <span id="label-s-time">30s</span></div>
+            </div>
+
+            <!-- East Signal Head -->
+            <div class="signal-head east" id="head-east">
+              <div class="signal-bulb red active" id="bulb-east-red"></div>
+              <div class="signal-bulb amber" id="bulb-east-amber"></div>
+              <div class="signal-bulb green" id="bulb-east-green"></div>
+              <div class="signal-label">E: <span id="label-e-time">30s</span></div>
+            </div>
+
+            <!-- West Signal Head -->
+            <div class="signal-head west" id="head-west">
+              <div class="signal-bulb red active" id="bulb-west-red"></div>
+              <div class="signal-bulb amber" id="bulb-west-amber"></div>
+              <div class="signal-bulb green" id="bulb-west-green"></div>
+              <div class="signal-label">W: <span id="label-w-time">30s</span></div>
+            </div>
+          </div>
+
+          <!-- Optimization Configuration Panel -->
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <h3 class="panel-title"><span>🎛️</span> Approach Volume Inputs</h3>
+                <span class="panel-subtitle">Measured or custom arrival rates across all 4 legs</span>
+              </div>
+              <button id="btn-pull-measured" class="btn btn-secondary btn-sm">Auto-Pull Measured</button>
+            </div>
+
+            <form id="signal-optimize-form">
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="form-group">
+                  <label class="form-label">North Volume (veh)</label>
+                  <input type="number" id="input-n-count" class="form-control" value="18" min="1" max="200" required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">South Volume (veh)</label>
+                  <input type="number" id="input-s-count" class="form-control" value="12" min="1" max="200" required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">East Volume (veh)</label>
+                  <input type="number" id="input-e-count" class="form-control" value="28" min="1" max="200" required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">West Volume (veh)</label>
+                  <input type="number" id="input-w-count" class="form-control" value="6" min="1" max="200" required>
+                </div>
+              </div>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 4px;">
+                <div class="form-group">
+                  <label class="form-label">Cycle Time (s)</label>
+                  <input type="number" id="input-cycle" class="form-control" value="120" min="60" max="240">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Min Green (s)</label>
+                  <input type="number" id="input-min-green" class="form-control" value="10" min="5" max="30">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Max Green (s)</label>
+                  <input type="number" id="input-max-green" class="form-control" value="60" min="30" max="120">
+                </div>
+              </div>
+
+              <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;">
+                Compute Webster Optimized Timings
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Comparative Plan Breakdown -->
+        <div class="panel" style="margin-top: 20px;">
+          <div class="panel-header">
+            <div>
+              <h3 class="panel-title"><span>⚖️</span> Baseline vs Recommended Dynamic Plan</h3>
+              <span class="panel-subtitle">Engineering comparison and green duration allocation</span>
+            </div>
+          </div>
+
+          <div class="data-table-wrapper" style="margin-bottom: 16px;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Approach Leg</th>
+                  <th>Observed Volume</th>
+                  <th>Fixed Baseline Green</th>
+                  <th>Recommended Dynamic Green</th>
+                  <th>Variance (&Delta;)</th>
+                  <th>Clearance (Amber + Red)</th>
+                </tr>
+              </thead>
+              <tbody id="signal-comparison-tbody">
+                <!-- Dynamically Populated -->
+              </tbody>
+            </table>
+          </div>
+
+          <div style="background: var(--bg-base); padding: 16px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+            <h4 style="font-size: 13px; font-weight: 600; color: var(--primary-accent); margin-bottom: 6px;">
+              Engineered Optimization Reasoning:
+            </h4>
+            <p id="signal-full-reasoning" style="font-size: 12.5px; color: var(--text-muted); line-height: 1.6;">
+              Awaiting calculation...
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="/frontend/js/api.js"></script>
+  <script src="/frontend/js/app.js"></script>
+  <script src="/frontend/js/signal-optimization.js"></script>
+</body>
+</html>

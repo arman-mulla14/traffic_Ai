@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Database Admin Panel (DAP) | AI Traffic Management</title>
+  <link rel="stylesheet" href="../css/style.css?v=2.3">
+  <link rel="stylesheet" href="/frontend/css/style.css?v=2.3">
+  <link rel="stylesheet" href="/css/style.css?v=2.3">
+  <style>
+    /* Inline fail-safe icon dimensions */
+    svg { max-width: 100%; box-sizing: border-box; }
+    .sidebar-car-icon svg { width: 52px !important; height: 52px !important; }
+    .sidebar-skyline-svg { width: 130px !important; height: 48px !important; }
+    .nav-link svg { width: 18px !important; height: 18px !important; min-width: 18px; }
+    .datetime-pill svg { width: 15px !important; height: 15px !important; min-width: 15px; }
+    .header-bell-btn svg { width: 18px !important; height: 18px !important; }
+    .traffic-status-box svg { width: 22px !important; height: 22px !important; }
+  </style>
+</head>
+<body>
+  <div class="app-layout">
+    <!-- SIDEBAR (Master Design Reference) -->
+    <aside class="app-sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-car-icon">
+          <svg width="52" height="52" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M22 14C27 10 37 10 42 14" stroke="#00BA63" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M26 18C29 15 35 15 38 18" stroke="#00BA63" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="32" cy="22" r="1.5" fill="#00BA63"/>
+            <path d="M18 36L22 26C22.6 24.5 24.1 23.5 25.8 23.5H38.2C39.9 23.5 41.4 24.5 42 26L46 36C47.7 36 49 37.3 49 39V46C49 47.1 48.1 48 47 48H45C43.9 48 43 47.1 43 46V44H21V46C21 47.1 20.1 48 19 48H17C15.9 48 15 47.1 15 46V39C15 37.3 16.3 36 18 36Z" stroke="#00BA63" stroke-width="2.5" stroke-linejoin="round"/>
+            <path d="M22.5 35L25 27.5H39L41.5 35H22.5Z" stroke="#00BA63" stroke-width="2" stroke-linejoin="round"/>
+            <circle cx="21" cy="40" r="2.5" fill="#00BA63"/>
+            <circle cx="43" cy="40" r="2.5" fill="#00BA63"/>
+          </svg>
+        </div>
+        <div class="sidebar-brand-title">AI Traffic</div>
+        <div class="sidebar-brand-title">Management</div>
+        <div class="sidebar-brand-subtitle">Smarter Traffic. Safer City.</div>
+      </div>
+
+      <!-- Navigation Items (Exact 8 items in Screenshot Order) -->
+      <nav class="sidebar-nav">
+        <a href="/frontend/index.html" class="nav-link">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          Dashboard
+        </a>
+        <a href="/frontend/pages/video-management.html" class="nav-link">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg>
+          Video Management
+        </a>
+        <a href="/frontend/pages/live-monitoring.html" class="nav-link">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+          Live Monitoring
+        </a>
+        <a href="/frontend/pages/traffic-analytics.html" class="nav-link">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+          Traffic Analytics
+        </a>
+        <a href="/frontend/pages/incident-management.html" class="nav-link">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>
+          Incident Management
+        </a>
+        <a href="/frontend/pages/reports.html" class="nav-link">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/></svg>
+          Reports
+        </a>
+        <a href="/frontend/pages/camera-management.html" class="nav-link">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+          Camera Management
+        </a>
+        <a href="/frontend/pages/settings.html" class="nav-link">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Settings
+        </a>
+      </nav>
+
+      <!-- Bottom Skyline Illustration -->
+      <div class="sidebar-footer">
+        <svg class="sidebar-skyline-svg" width="130" height="48" viewBox="0 0 140 50">
+          <path d="M10 50 V30 H22 V18 H32 V5 H40 V22 H48 V12 H58 V50 M58 50 V28 H68 V14 H76 V5 H84 V20 H92 V32 H102 V16 H112 V50 M112 50 V36 H120 V25 H128 V50" stroke="#2563EB" stroke-width="1.6" fill="none"/>
+        </svg>
+        <div class="sidebar-city-text">Smart City</div>
+        <div class="sidebar-city-subtext">Smart Traffic</div>
+      </div>
+    </aside>
+
+    <!-- MAIN APP AREA -->
+    <div class="app-main">
+      <!-- TOP NAVIGATION BAR -->
+      <header class="top-header">
+        <div class="header-left">
+          <button id="sidebar-toggle" class="mobile-toggle" aria-label="Toggle Navigation">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+          </button>
+          
+          <div class="system-online-pill">
+            <span class="status-dot-green"></span>
+            <span id="system-status-text">System Online</span>
+          </div>
+
+          <div class="datetime-pill">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <span id="header-datetime-text">Nov 7, 2026 13:45:00</span>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <button class="header-bell-btn" aria-label="Notifications" onclick="showToast('Database engine running in WAL mode with direct disk sync.');">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span class="bell-badge-count">1</span>
+          </button>
+
+          <div class="header-admin-pill" onclick="window.location.href='/frontend/pages/settings.html';">
+            <div class="admin-avatar-circle">A</div>
+            <div class="admin-name-text">
+              Admin
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+          </div>
+
+          <div class="traffic-status-box">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+            <div class="traffic-status-text">
+              <span class="traffic-status-title">SQLite Operational</span>
+              <span class="traffic-status-subtitle">Database Admin Active</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- PAGE CONTENT -->
+      <main class="page-container">
+        <!-- Page Title & Quick Action Bar -->
+        <div class="page-header-row">
+          <div class="page-title-block">
+            <h2>Database Admin Panel (DAP)</h2>
+            <p>Full-featured SQLite Database Manager – inspect tables, browse rows, insert/update/delete data, execute raw SQL &amp; maintain database storage.</p>
+          </div>
+          <div class="page-actions-group">
+            <button id="btn-vacuum-db" class="btn btn-outline" title="Defragment and reclaim free space" onclick="handleVacuumDb()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4"/><path d="m4.93 4.93 2.83 2.83"/><path d="M2 12h4"/><path d="m4.93 19.07 2.83-2.83"/><path d="M12 22v-4"/><path d="m19.07 19.07-2.83-2.83"/><path d="M22 12h-4"/><path d="m19.07 4.93-2.83 2.83"/></svg>
+              VACUUM &amp; Optimize
+            </button>
+            <button id="btn-integrity-check" class="btn btn-outline" title="Run PRAGMA integrity_check" onclick="handleIntegrityCheck()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m9 12 2 2 4-4"/></svg>
+              Check Integrity
+            </button>
+            <button id="btn-download-db" class="btn btn-primary" title="Download .db file" onclick="handleDownloadDb()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+              Download DB Backup
+            </button>
+          </div>
+        </div>
+
+        <!-- 4 KPI Metrics Cards -->
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-info">
+              <span class="kpi-label">Registered Tables</span>
+              <span class="kpi-value" id="dap-kpi-tables">--</span>
+              <span class="kpi-subtext" id="dap-kpi-tables-sub">SQLite User Tables</span>
+            </div>
+            <div class="kpi-icon-box blue">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/></svg>
+            </div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-info">
+              <span class="kpi-label">Total Records Stored</span>
+              <span class="kpi-value" id="dap-kpi-records">--</span>
+              <span class="kpi-subtext" style="color:#00BA63; font-weight:600;">Across all tables</span>
+            </div>
+            <div class="kpi-icon-box green">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3"/></svg>
+            </div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-info">
+              <span class="kpi-label">Database File Size</span>
+              <span class="kpi-value" id="dap-kpi-size">-- KB</span>
+              <span class="kpi-subtext" id="dap-kpi-pages">Page Size: 4096</span>
+            </div>
+            <div class="kpi-icon-box orange">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-info">
+              <span class="kpi-label">SQLite Engine Version</span>
+              <span class="kpi-value" id="dap-kpi-ver">--</span>
+              <span class="kpi-subtext" id="dap-kpi-journal" style="color:#2878D0; font-weight:600;">Journal: WAL</span>
+            </div>
+            <div class="kpi-icon-box blue">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- SPLIT LAYOUT: LEFT TABLE DIRECTORY, RIGHT TABLE WORKSPACE -->
+        <div class="dap-split-container">
+          <!-- Left Column: Tables List -->
+          <div class="dap-sidebar-card">
+            <div style="padding: 14px 16px; border-bottom: 1px solid #E2E8F0; background: #FAFBFD;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
+                <span style="font-size: 13px; font-weight: 700; color: #0F172A; display:flex; align-items:center; gap:6px;">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3"/></svg>
+                  Database Tables
+                </span>
+                <button id="btn-refresh-tables" class="dap-btn-icon" title="Refresh Table List">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
+                </button>
+              </div>
+              <input type="text" id="dap-table-search-input" class="form-control" style="font-size: 12px; padding: 6px 10px;" placeholder="Filter tables..." />
+            </div>
+
+            <!-- Table items populated via JS -->
+            <div id="dap-tables-list" style="max-height: 480px; overflow-y: auto;">
+              <div style="padding: 20px; text-align: center; color: #64748B; font-size: 12px;">Loading tables...</div>
+            </div>
+
+            <!-- Bottom Raw SQL Shortcut -->
+            <div style="padding: 12px 16px; border-top: 1px solid #E2E8F0; background: #FAFBFD;">
+              <button id="btn-shortcut-sql" class="btn btn-outline" style="width: 100%; font-size: 12px; justify-content: center;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" x2="20" y1="19" y2="19"/></svg>
+                Open SQL Console
+              </button>
+            </div>
+          </div>
+
+          <!-- Right Column: Table Workspace -->
+          <div class="card" style="margin-bottom: 0; padding: 0; overflow: hidden;">
+            <!-- Tabs Navigation Bar -->
+            <div class="dap-tabs-bar">
+              <button class="dap-tab-btn active" data-tab="browse" onclick="switchDapTab('browse')">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/></svg>
+                Browse Data
+              </button>
+              <button class="dap-tab-btn" data-tab="structure" onclick="switchDapTab('structure')">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/></svg>
+                Structure (Schema)
+              </button>
+              <button class="dap-tab-btn" data-tab="insert" onclick="switchDapTab('insert')">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                Insert Record
+              </button>
+              <button class="dap-tab-btn" data-tab="sql" onclick="switchDapTab('sql')">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" x2="20" y1="19" y2="19"/></svg>
+                SQL Console
+              </button>
+              <button class="dap-tab-btn" data-tab="export" onclick="switchDapTab('export')">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                Export Table
+              </button>
+            </div>
+
+            <!-- TAB 1: BROWSE DATA -->
+            <div id="tab-content-browse" class="dap-tab-panel" style="padding: 16px;">
+              <!-- Data Filter & Pagination Controls -->
+              <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:14px;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <span style="font-size:12.5px; color:#64748B;">Showing table:</span>
+                  <strong id="dap-current-table-label" style="font-size:14px; color:#2878D0;">cameras</strong>
+                  <span id="dap-browse-total-label" class="badge badge-info" style="font-size:11px;">0 records</span>
+                </div>
+
+                <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                  <input type="text" id="dap-row-search-input" class="form-control" style="font-size:12px; width:180px; padding:6px 10px;" placeholder="Search rows..." />
+                  
+                  <select id="dap-per-page-select" class="form-select" style="font-size:12px; width:100px; padding:6px 8px;">
+                    <option value="10">10 / page</option>
+                    <option value="25" selected>25 / page</option>
+                    <option value="50">50 / page</option>
+                    <option value="100">100 / page</option>
+                  </select>
+
+                  <div class="pagination-btn-group" style="display:flex; gap:4px;">
+                    <button id="btn-page-prev" class="btn btn-outline" style="padding:5px 9px; font-size:11.5px;">&laquo; Prev</button>
+                    <span id="dap-page-indicator" style="font-size:12px; padding:6px 8px; color:#475569; font-weight:600;">1 / 1</span>
+                    <button id="btn-page-next" class="btn btn-outline" style="padding:5px 9px; font-size:11.5px;">Next &raquo;</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Records Data Table -->
+              <div class="table-responsive" style="max-height: 520px; border: 1px solid #E2E8F0; border-radius: 8px;">
+                <table class="enterprise-table" id="dap-data-table">
+                  <thead id="dap-table-thead">
+                    <tr><th>Loading headers...</th></tr>
+                  </thead>
+                  <tbody id="dap-table-tbody">
+                    <tr><td style="text-align:center; padding: 24px; color:#64748B;">Loading table records...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- TAB 2: STRUCTURE (SCHEMA) -->
+            <div id="tab-content-structure" class="dap-tab-panel" style="display:none; padding: 20px;">
+              <h4 style="font-size: 14px; font-weight: 700; margin-bottom: 12px; color:#0F172A;">Column Definitions</h4>
+              <div class="table-responsive" style="border: 1px solid #E2E8F0; border-radius: 8px; margin-bottom: 20px;">
+                <table class="enterprise-table">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Column Name</th>
+                      <th>Data Type</th>
+                      <th>Not Null</th>
+                      <th>Default Value</th>
+                      <th>Key</th>
+                    </tr>
+                  </thead>
+                  <tbody id="dap-schema-tbody">
+                    <tr><td colspan="6" style="text-align:center; padding:18px;">Loading schema...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <h4 style="font-size: 14px; font-weight: 700; margin-bottom: 10px; color:#0F172A;">Table DDL Statement (SQL)</h4>
+              <pre id="dap-create-sql-box" style="background:#0F172A; color:#38BDF8; padding:14px; border-radius:8px; font-size:12px; font-family:monospace; overflow-x:auto;"></pre>
+            </div>
+
+            <!-- TAB 3: INSERT RECORD -->
+            <div id="tab-content-insert" class="dap-tab-panel" style="display:none; padding: 20px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 16px;">
+                <div>
+                  <h4 style="font-size: 14px; font-weight: 700; color:#0F172A; margin-bottom: 4px;">Insert New Record</h4>
+                  <p style="font-size: 12px; color:#64748B;">Enter values for columns in <strong id="dap-insert-table-name" style="color:#2878D0;">table</strong>. Primary keys marked with auto-increment can be left blank.</p>
+                </div>
+              </div>
+              <form id="dap-insert-form">
+                <div id="dap-insert-fields-container" style="display:grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px;">
+                  <!-- Dynamic Form Fields -->
+                </div>
+                <div style="display:flex; justify-content:flex-end; gap:10px;">
+                  <button type="reset" class="btn btn-outline">Clear Fields</button>
+                  <button type="submit" class="btn btn-primary">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                    Save &amp; Insert Record
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <!-- TAB 4: SQL CONSOLE -->
+            <div id="tab-content-sql" class="dap-tab-panel" style="display:none; padding: 20px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
+                <span style="font-size:13px; font-weight:700; color:#0F172A;">SQL Command Console</span>
+                <!-- Syntax Snippets -->
+                <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                  <button class="btn btn-outline btn-sm sql-snippet-btn" data-sql="SELECT * FROM cameras LIMIT 25;">SELECT * cameras</button>
+                  <button class="btn btn-outline btn-sm sql-snippet-btn" data-sql="SELECT COUNT(*) AS total_incidents, severity FROM incidents GROUP BY severity;">Group Incidents</button>
+                  <button class="btn btn-outline btn-sm sql-snippet-btn" data-sql="SELECT * FROM traffic_records ORDER BY id DESC LIMIT 10;">Recent Traffic</button>
+                  <button class="btn btn-outline btn-sm sql-snippet-btn" data-sql="PRAGMA table_info(cameras);">PRAGMA info</button>
+                </div>
+              </div>
+
+              <textarea id="dap-sql-input" class="dap-sql-editor" placeholder="Write custom SQL query here... e.g. SELECT * FROM cameras WHERE status = 'ACTIVE';">SELECT * FROM cameras LIMIT 25;</textarea>
+
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-top: 10px; margin-bottom: 16px;">
+                <span style="font-size:11.5px; color:#64748B;">Supports SELECT, INSERT, UPDATE, DELETE, and PRAGMA queries.</span>
+                <button id="btn-run-sql" class="btn btn-primary" style="padding: 7px 16px;" onclick="handleRunSql()">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                  Run SQL Query
+                </button>
+              </div>
+
+              <!-- Query Result / Execution Stats Banner -->
+              <div id="dap-sql-stats-banner" style="display:none; margin-bottom: 14px; padding: 8px 14px; background:#EEF6FF; border-left: 3px solid #2878D0; border-radius: 4px; font-size: 12px; color:#1E293B;">
+                <!-- Execution ms & counts -->
+              </div>
+
+              <!-- Query Tabular Output -->
+              <div class="table-responsive" style="max-height: 380px; border: 1px solid #E2E8F0; border-radius: 8px;">
+                <table class="enterprise-table" id="dap-sql-results-table">
+                  <thead id="dap-sql-thead">
+                    <tr><th>Columns</th></tr>
+                  </thead>
+                  <tbody id="dap-sql-tbody">
+                    <tr><td style="text-align:center; padding:18px; color:#64748B;">Execute a query above to view results.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- TAB 5: EXPORT TABLE -->
+            <div id="tab-content-export" class="dap-tab-panel" style="display:none; padding: 24px;">
+              <div class="report-card" style="border:1px solid #E2E8F0; border-radius:12px; padding:24px; max-width:640px; margin:0 auto; background:#FFFFFF;">
+                <div style="display:flex; gap:16px; align-items:center; margin-bottom: 16px;">
+                  <div style="width:48px; height:48px; border-radius:10px; background:#EEF6FF; color:#2878D0; display:flex; align-items:center; justify-content:center;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                  </div>
+                  <div>
+                    <h3 style="font-size: 16px; font-weight: 700; color:#0F172A; margin-bottom: 4px;">Export Table: <span id="dap-export-table-title" style="color:#2878D0;">cameras</span></h3>
+                    <p style="font-size: 12.5px; color:#64748B;">Export all rows in the active table into CSV spreadsheet or JSON format.</p>
+                  </div>
+                </div>
+
+                <div style="background:#F8FAFC; border-radius:8px; padding:14px; margin-bottom: 20px; font-size:12px; color:#475569;">
+                  <div>• Table: <strong id="dap-export-meta-table">cameras</strong></div>
+                  <div>• Total Rows: <strong id="dap-export-meta-count">--</strong></div>
+                  <div>• Primary Key: <strong id="dap-export-meta-pk">id</strong></div>
+                </div>
+
+                <div style="display:flex; gap:12px;">
+                  <button id="btn-export-csv" class="btn btn-outline" style="flex:1; justify-content:center;" onclick="handleExportCsv()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                    Download CSV
+                  </button>
+                  <button id="btn-export-json" class="btn btn-outline" style="flex:1; justify-content:center;" onclick="handleExportJson()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                    Download JSON
+                  </button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- MODAL: EDIT RECORD -->
+  <div id="dap-edit-modal" class="dap-modal-overlay">
+    <div class="dap-modal-box">
+      <div class="dap-modal-header">
+        <h4 style="font-size: 14px; font-weight: 700; color:#0F172A;" id="dap-edit-modal-title">Edit Record</h4>
+        <button class="chat-close-btn" onclick="closeEditModal()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <form id="dap-edit-form">
+        <div class="dap-modal-body" id="dap-edit-fields-container">
+          <!-- Populated dynamically -->
+        </div>
+        <div class="dap-modal-footer">
+          <button type="button" class="btn btn-outline" onclick="closeEditModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: VIEW RECORD JSON -->
+  <div id="dap-view-modal" class="dap-modal-overlay">
+    <div class="dap-modal-box">
+      <div class="dap-modal-header">
+        <h4 style="font-size: 14px; font-weight: 700; color:#0F172A;">Record JSON Inspector</h4>
+        <button class="chat-close-btn" onclick="closeViewModal()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="dap-modal-body">
+        <pre id="dap-view-json-content" style="background:#0F172A; color:#38BDF8; padding:14px; border-radius:8px; font-size:12px; font-family:monospace; max-height:400px; overflow-y:auto;"></pre>
+      </div>
+      <div class="dap-modal-footer">
+        <button type="button" class="btn btn-outline" onclick="closeViewModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="/frontend/js/api.js?v=6.0"></script>
+  <script src="/frontend/js/app.js?v=6.0"></script>
+  <script src="/frontend/js/database-admin.js?v=6.0"></script>
+</body>
+</html>
+
