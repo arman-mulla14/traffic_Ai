@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Traffic Management Dashboard</title>
+    <link rel="stylesheet" href="./css/style.css?v=2.2">
+  <link rel="stylesheet" href="/frontend/css/style.css?v=2.2">
+  <link rel="stylesheet" href="/css/style.css?v=2.2">
+  <style>
+    /* Inline fail-safe icon dimensions */
+    svg { max-width: 100%; box-sizing: border-box; }
+    .sidebar-car-icon svg { width: 52px !important; height: 52px !important; }
+    .sidebar-skyline-svg { width: 130px !important; height: 48px !important; }
+    .nav-link svg { width: 18px !important; height: 18px !important; min-width: 18px; }
+    .datetime-pill svg { width: 15px !important; height: 15px !important; min-width: 15px; }
+    .header-bell-btn svg { width: 18px !important; height: 18px !important; }
+    .traffic-status-box svg { width: 22px !important; height: 22px !important; }
+  </style>
+  <script src="/frontend/assets/chart.umd.min.js"></script>
+</head>
+<body>
+  <div class="app-layout">
+    <!-- SIDEBAR (Dark Navy, Green Active Pill, Skyline Illustration) -->
+    <aside class="app-sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-car-icon">
+          <!-- Stylized Green Car with Signal Waves -->
+          <svg width="52" height="52" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Signal arches -->
+            <path d="M22 14C27 10 37 10 42 14" stroke="#00BA63" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M26 18C29 15 35 15 38 18" stroke="#00BA63" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="32" cy="22" r="1.5" fill="#00BA63"/>
+            <!-- Car body -->
+            <path d="M18 36L22 26C22.6 24.5 24.1 23.5 25.8 23.5H38.2C39.9 23.5 41.4 24.5 42 26L46 36C47.7 36 49 37.3 49 39V46C49 47.1 48.1 48 47 48H45C43.9 48 43 47.1 43 46V44H21V46C21 47.1 20.1 48 19 48H17C15.9 48 15 47.1 15 46V39C15 37.3 16.3 36 18 36Z" stroke="#00BA63" stroke-width="2.5" stroke-linejoin="round"/>
+            <!-- Windshield -->
+            <path d="M22.5 35L25 27.5H39L41.5 35H22.5Z" stroke="#00BA63" stroke-width="2" stroke-linejoin="round"/>
+            <!-- Headlights -->
+            <circle cx="21" cy="40" r="2.5" fill="#00BA63"/>
+            <circle cx="43" cy="40" r="2.5" fill="#00BA63"/>
+          </svg>
+        </div>
+        <div class="sidebar-brand-title">AI Traffic</div>
+        <div class="sidebar-brand-title">Management</div>
+        <div class="sidebar-brand-subtitle">Smarter Traffic. Safer City.</div>
+      </div>
+
+      <!-- Navigation Items (Exact 8 items in Screenshot Order) -->
+      <nav class="sidebar-nav">
+        <!-- 1. Dashboard (Active Green Pill) -->
+        <a href="/frontend/index.html" class="nav-link active">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          Dashboard
+        </a>
+        <!-- 2. Video Management -->
+        <a href="/frontend/pages/video-management.html" class="nav-link">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg>
+          Video Management
+        </a>
+        <!-- 3. Live Monitoring -->
+        <a href="/frontend/pages/live-monitoring.html" class="nav-link">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+          Live Monitoring
+        </a>
+        <!-- 4. Traffic Analytics -->
+        <a href="/frontend/pages/traffic-analytics.html" class="nav-link">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+          Traffic Analytics
+        </a>
+        <!-- 5. Incident Management -->
+        <a href="/frontend/pages/incident-management.html" class="nav-link">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>
+          Incident Management
+        </a>
+        <!-- 6. Reports -->
+        <a href="/frontend/pages/reports.html" class="nav-link">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/></svg>
+          Reports
+        </a>
+        <!-- 7. Camera Management -->
+        <a href="/frontend/pages/camera-management.html" class="nav-link">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+          Camera Management
+        </a>
+        <!-- 8. Settings -->
+        <a href="/frontend/pages/settings.html" class="nav-link">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Settings
+        </a>
+      </nav>
+
+      <!-- Bottom Skyline Illustration & Smart City -->
+      <div class="sidebar-footer">
+        <svg class="sidebar-skyline-svg" width="130" height="48" viewBox="0 0 140 50">
+          <path d="M10 50 V30 H22 V18 H32 V5 H40 V22 H48 V12 H58 V50 M58 50 V28 H68 V14 H76 V5 H84 V20 H92 V32 H102 V16 H112 V50 M112 50 V36 H120 V25 H128 V50" stroke="#2563EB" stroke-width="1.6" fill="none"/>
+        </svg>
+        <div class="sidebar-city-text">Smart City</div>
+        <div class="sidebar-city-subtext">Smart Traffic</div>
+      </div>
+    </aside>
+
+    <!-- MAIN APP AREA -->
+    <div class="app-main">
+      <!-- TOP NAVIGATION BAR -->
+      <header class="top-header">
+        <div class="header-left">
+          <button id="sidebar-toggle" class="mobile-toggle" aria-label="Toggle Navigation">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+          </button>
+          
+          <!-- System Online Pill -->
+          <div class="system-online-pill">
+            <span class="status-dot-green"></span>
+            System Online
+          </div>
+
+          <!-- Calendar & Clock Pill -->
+          <div class="datetime-pill">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <span id="header-datetime-text">Apr 14, 2025  15:30:45</span>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <!-- Notification Bell -->
+          <button class="header-bell-btn" aria-label="Notifications" onclick="showToast('2 active traffic safety alerts recorded.');">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span class="bell-badge-count">2</span>
+          </button>
+
+          <!-- Admin Profile Pill -->
+          <div class="header-admin-pill" onclick="window.location.href='/frontend/pages/settings.html';">
+            <div class="admin-avatar-circle">A</div>
+            <div class="admin-name-text">
+              Admin
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+          </div>
+
+          <!-- Traffic Status Box (Top Right Green Box) -->
+          <div class="traffic-status-box">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+            <div class="traffic-status-text">
+              <span class="traffic-status-title">Traffic is Normal</span>
+              <span class="traffic-status-subtitle">All Systems Operational</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- PAGE CONTENT -->
+      <main class="page-container" style="padding-bottom: 75px;">
+        <!-- WELCOME HEADER WITH ROAD-WISE FILTER BAR -->
+        <div class="welcome-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+          <div>
+            <h1 class="welcome-title">Welcome Back, Admin 👋</h1>
+            <p class="welcome-subtitle">AI-Powered Traffic Management Dashboard</p>
+          </div>
+
+          <!-- Road-Oriented Approach Selector -->
+          <div class="road-selector-card" style="display: flex; align-items: center; gap: 10px; background: #FFFFFF; padding: 7px 14px; border-radius: 12px; border: 1.5px solid #E2E8F0; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.05);">
+            <div style="display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: #1E293B;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2.2"><path d="M4 19L8 5"/><path d="M16 5l4 14"/><path d="M12 4v4"/><path d="M12 11v4"/><path d="M12 18v2"/></svg>
+              <span>Road View:</span>
+            </div>
+            <select id="dashboard-road-filter" class="form-select" style="min-width: 250px; font-weight: 600; font-size: 13px; color: #0F172A; border: 1.5px solid #2563EB; background: #F8FAFC; border-radius: 8px; padding: 7px 12px; cursor: pointer; outline: none;">
+              <option value="all" selected>All Roads (Full Intersection)</option>
+              <option value="1">Road 1: North Approach (Nort NH4)</option>
+              <option value="2">Road 2: South Approach (South NH4)</option>
+              <option value="3">Road 3: East Approach (East NH4)</option>
+              <option value="4">Road 4: West Approach (Wast NH4)</option>
+            </select>
+            <span id="selected-road-badge" style="font-size: 12px; font-weight: 700; background: #EFF6FF; color: #2563EB; padding: 5px 12px; border-radius: 20px; border: 1px solid #BFDBFE;">4 Approaches Active</span>
+          </div>
+        </div>
+
+        <!-- ROW 2: FOUR KPI CARDS (With subtle wave in the corner) -->
+        <div class="kpi-row">
+          <!-- Card 1: Total Vehicles Detected -->
+          <div class="kpi-box">
+            <div class="kpi-left">
+              <div class="kpi-icon-square blue">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.5 2.8C2.1 10.7 2 11 2 11.4V16c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></svg>
+              </div>
+              <div class="kpi-details">
+                <span class="kpi-label">Total Vehicles Detected</span>
+                <div class="kpi-value-row">
+                  <span id="kpi-val-vehicles" class="kpi-value">12,458</span>
+                  <span class="kpi-trend green">↑ 12%</span>
+                </div>
+              </div>
+            </div>
+            <!-- Decorative Blue Wave -->
+            <svg class="kpi-corner-wave" width="100" height="50" viewBox="0 0 100 50" fill="none">
+              <path d="M0 40 Q25 20, 50 35 T100 20 L100 50 L0 50 Z" fill="#E0EFFF"/>
+              <path d="M0 45 Q25 30, 50 42 T100 30" stroke="#BFDBFE" stroke-width="2"/>
+            </svg>
+          </div>
+
+          <!-- Card 2: Videos Processed -->
+          <div class="kpi-box">
+            <div class="kpi-left">
+              <div class="kpi-icon-square green">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="6 4 20 12 6 20 6 4"/></svg>
+              </div>
+              <div class="kpi-details">
+                <span class="kpi-label">Videos Processed</span>
+                <div class="kpi-value-row">
+                  <span id="kpi-val-videos" class="kpi-value">48</span>
+                  <span class="kpi-trend green">↑ 8%</span>
+                </div>
+              </div>
+            </div>
+            <!-- Decorative Green Wave -->
+            <svg class="kpi-corner-wave" width="100" height="50" viewBox="0 0 100 50" fill="none">
+              <path d="M0 40 Q25 25, 50 38 T100 22 L100 50 L0 50 Z" fill="#D1FAE5"/>
+              <path d="M0 45 Q25 32, 50 42 T100 32" stroke="#6EE7B7" stroke-width="2"/>
+            </svg>
+          </div>
+
+          <!-- Card 3: Avg Traffic Density -->
+          <div class="kpi-box">
+            <div class="kpi-left">
+              <div class="kpi-icon-square blue">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+              </div>
+              <div class="kpi-details">
+                <span class="kpi-label">Avg Traffic Density</span>
+                <div class="kpi-value-row">
+                  <span id="kpi-val-density" class="kpi-value">67%</span>
+                  <span class="kpi-trend green">↑ 5%</span>
+                </div>
+              </div>
+            </div>
+            <!-- Decorative Blue Wave -->
+            <svg class="kpi-corner-wave" width="100" height="50" viewBox="0 0 100 50" fill="none">
+              <path d="M0 40 Q25 22, 50 36 T100 24 L100 50 L0 50 Z" fill="#E0F2FE"/>
+              <path d="M0 45 Q25 30, 50 42 T100 34" stroke="#7DD3FC" stroke-width="2"/>
+            </svg>
+          </div>
+
+          <!-- Card 4: Total Incidents -->
+          <div class="kpi-box">
+            <div class="kpi-left">
+              <div class="kpi-icon-square red">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>
+              </div>
+              <div class="kpi-details">
+                <span class="kpi-label">Total Incidents</span>
+                <div class="kpi-value-row">
+                  <span id="kpi-val-incidents" class="kpi-value">7</span>
+                  <span class="kpi-trend red">↑ 1</span>
+                </div>
+              </div>
+            </div>
+            <!-- Decorative Red Wave -->
+            <svg class="kpi-corner-wave" width="100" height="50" viewBox="0 0 100 50" fill="none">
+              <path d="M0 40 Q25 24, 50 37 T100 25 L100 50 L0 50 Z" fill="#FFE4E6"/>
+              <path d="M0 45 Q25 32, 50 43 T100 35" stroke="#FDA4AF" stroke-width="2"/>
+            </svg>
+          </div>
+        </div>
+
+        <!-- ROW 3: THREE PANELS (Navy Headers) -->
+        <div class="row-three-grid">
+          <!-- Panel 1: Vehicle Distribution -->
+          <div class="navy-card">
+            <div class="navy-card-header">
+              <div class="navy-header-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+                Vehicle Distribution
+              </div>
+            </div>
+            <div class="navy-card-body">
+              <div class="distribution-container">
+                <!-- Donut Chart with Center Text -->
+                <div class="donut-wrapper">
+                  <canvas id="categoryDistributionChart"></canvas>
+                  <div class="donut-center-text">
+                    <div id="donut-center-total" class="donut-center-number">1,374</div>
+                    <div class="donut-center-label">Total</div>
+                  </div>
+                </div>
+
+                <!-- Legend List with colored dots and exact percentages -->
+                <div class="distribution-legend">
+                  <div class="dist-legend-row">
+                    <div class="dist-legend-label">
+                      <span class="dist-dot blue"></span>
+                      <span>Cars</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:6px;">
+                      <span id="dist-cnt-cars" style="font-size:11.5px; color:#94A3B8; font-weight:500;">(428)</span>
+                      <span id="dist-pct-cars" class="dist-pct">55.1%</span>
+                    </div>
+                  </div>
+                  <div class="dist-legend-row">
+                    <div class="dist-legend-label">
+                      <span class="dist-dot green"></span>
+                      <span>Motorcycles</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:6px;">
+                      <span id="dist-cnt-motos" style="font-size:11.5px; color:#94A3B8; font-weight:500;">(156)</span>
+                      <span id="dist-pct-motos" class="dist-pct">20.1%</span>
+                    </div>
+                  </div>
+                  <div class="dist-legend-row">
+                    <div class="dist-legend-label">
+                      <span class="dist-dot orange"></span>
+                      <span>Buses</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:6px;">
+                      <span id="dist-cnt-buses" style="font-size:11.5px; color:#94A3B8; font-weight:500;">(85)</span>
+                      <span id="dist-pct-buses" class="dist-pct">10.9%</span>
+                    </div>
+                  </div>
+                  <div class="dist-legend-row">
+                    <div class="dist-legend-label">
+                      <span class="dist-dot purple"></span>
+                      <span>Trucks</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:6px;">
+                      <span id="dist-cnt-trucks" style="font-size:11.5px; color:#94A3B8; font-weight:500;">(108)</span>
+                      <span id="dist-pct-trucks" class="dist-pct">13.9%</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Panel 2: Traffic Volume Trend -->
+          <div class="navy-card">
+            <div class="navy-card-header">
+              <div class="navy-header-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                Traffic Volume Trend
+              </div>
+              <select id="volume-range-select" class="volume-filter-pill">
+                <option value="7">Last 7 Days ▾</option>
+                <option value="30">Last 30 Days ▾</option>
+              </select>
+            </div>
+            <div class="navy-card-body" style="padding: 14px 18px 10px 18px;">
+              <div style="height: 155px; width: 100%;">
+                <canvas id="trafficVolumeTrendChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Panel 3: Live Traffic Camera -->
+          <div class="navy-card">
+            <div class="navy-card-header">
+              <div class="navy-header-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                <span id="dashboard-live-cam-title">Live Traffic Camera</span>
+              </div>
+              <span id="dashboard-live-cam-badge" class="camera-live-pill">● Road 1 Live</span>
+            </div>
+            <div class="navy-card-body" style="padding: 10px;">
+              <div class="camera-preview-img-box">
+                <!-- Authentic Live Traffic View with YOLO Bounding Boxes from Master Ref -->
+                <img id="dashboard-live-cam" src="/api/cameras/1/stream" class="camera-preview-img" alt="Live Camera Traffic AI Detections" onerror="this.onerror=null; this.src='/frontend/assets/live_camera_feed.jpg';">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ROW 4: THREE PANELS (Recent Incidents, System Status, Quick Actions) -->
+        <div class="row-four-grid">
+          <!-- Panel 1: Recent Incidents -->
+          <div class="white-panel-card">
+            <div class="panel-header-row">
+              <div class="panel-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                Recent Incidents
+              </div>
+              <a href="/frontend/pages/incident-management.html" style="font-size: 12.5px; font-weight: 600; color: #2563EB;">View All →</a>
+            </div>
+            <div id="dashboard-incidents-list" class="incident-list">
+              <!-- Dynamically populated from /api/dashboard/charts -->
+              <div class="incident-row" style="padding: 12px; color: #64748B; font-size: 13px; text-align: center;">
+                Loading recent safety incidents...
+              </div>
+            </div>
+          </div>
+
+          <!-- Panel 2: System Status -->
+          <div class="white-panel-card">
+            <div class="panel-header-row">
+              <div class="panel-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                System Status
+              </div>
+            </div>
+            <div class="status-two-col">
+              <div class="status-checks-list">
+                <div class="status-check-row">
+                  <span class="status-check-label">AI Model</span>
+                  <span id="status-ai-model" class="status-check-badge green">✔ Running (YOLOv8 & RF)</span>
+                </div>
+                <div class="status-check-row">
+                  <span class="status-check-label">Database</span>
+                  <span id="status-database" class="status-check-badge green">✔ Connected (1,374 Records)</span>
+                </div>
+                <div class="status-check-row">
+                  <span class="status-check-label">Web Server</span>
+                  <span id="status-web-server" class="status-check-badge green">✔ Online (FastAPI 8000)</span>
+                </div>
+                <div class="status-check-row">
+                  <span class="status-check-label">Active Feeds</span>
+                  <span id="status-queue" class="status-check-badge navy">✔ 4/4 Active Feeds</span>
+                </div>
+              </div>
+              <!-- 98% Gauge -->
+              <div class="health-gauge-box">
+                <div id="system-health-gauge" class="gauge-circle">98%</div>
+                <span class="health-gauge-label">System Health</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Panel 3: Quick Actions -->
+          <div class="white-panel-card">
+            <div class="panel-header-row">
+              <div class="panel-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                Quick Actions
+              </div>
+            </div>
+            <div class="quick-actions-2x2">
+              <!-- Action 1: Upload Video -->
+              <a href="/frontend/pages/video-management.html" class="action-tile blue">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+                <span class="action-tile-text">Upload Video</span>
+              </a>
+              <!-- Action 2: Start Monitoring -->
+              <a href="/frontend/pages/live-monitoring.html" class="action-tile green">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><polygon points="10 8 16 10 10 12 10 8"/></svg>
+                <span class="action-tile-text">Start Monitoring</span>
+              </a>
+              <!-- Action 3: View Analytics -->
+              <a href="/frontend/pages/traffic-analytics.html" class="action-tile blue">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+                <span class="action-tile-text">View Analytics</span>
+              </a>
+              <!-- Action 4: Generate Reports -->
+              <a href="/frontend/pages/reports.html" class="action-tile green">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/></svg>
+                <span class="action-tile-text">Generate Reports</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="/frontend/js/api.js?v=7.4"></script>
+  <script src="/frontend/js/app.js?v=7.4"></script>
+  <script src="/frontend/js/dashboard.js?v=7.4"></script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+/* ==========================================================================
+   AI-BASED TRAFFIC MANAGEMENT SYSTEM - RESPONSIVE STYLING
+   ========================================================================== */
+
+@media (max-width: 1200px) {
+  .reports-cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .reports-cards-grid {
+    grid-template-columns: 1fr;
+  }
+  .page-header-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .page-actions-group {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+}
