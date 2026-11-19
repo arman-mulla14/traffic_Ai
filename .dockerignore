@@ -1,0 +1,17 @@
+venv
+.venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.git
+.gitignore
+.env
+*.log
+.system_generated
+cloudflared.exe
+test_erd.png
+erd_diagram.png
+erd_diagram.svg
+erd_diagram_surveillance.png
+erd_diagram_surveillance.svg

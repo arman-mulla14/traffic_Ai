@@ -1,3 +1,13 @@
+---
+title: AI Traffic Management System
+emoji: 🚦
+colorFrom: blue
+colorTo: green
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # AI-Based Traffic Management System (Enterprise Master Edition)
 
 [![Python](https://img.shields.io/badge/Python-3.11%20%7C%203.12%20%7C%203.13-blue.svg)](https://www.python.org/)
