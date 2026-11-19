@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  traffic-ai:
+    build: .
+    container_name: traffic_ai_app
+    restart: always
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./storage:/app/storage
+      - ./traffic_system.db:/app/traffic_system.db
+    environment:
+      - PORT=8000

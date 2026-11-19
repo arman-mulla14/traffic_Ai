@@ -294,7 +294,7 @@ function openCurrentTestOnLiveScreen() {
   if (currentTestCamId) {
     viewOnLiveScreen(currentTestCamId);
   } else {
-    window.location.href = "/frontend/pages/live-monitoring.html";
+    window.location.href = "/pages/live-monitoring.html";
   }
 }
 window.openCurrentTestOnLiveScreen = openCurrentTestOnLiveScreen;
@@ -315,7 +315,7 @@ function openTestFeedModal(camId) {
   if (img) {
     img.onerror = function() {
       this.onerror = null;
-      this.src = "/frontend/assets/live_camera_feed.jpg";
+      this.src = "/assets/live_camera_feed.jpg";
     };
     img.src = API.getCameraStreamUrl(camId) + "&t=" + Date.now();
   }

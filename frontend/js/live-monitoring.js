@@ -222,7 +222,7 @@ async function switchCameraStream(camId) {
   if (streamImg) {
     streamImg.onerror = function() {
       this.onerror = null;
-      this.src = "/frontend/assets/live_camera_feed.jpg";
+      this.src = "/assets/live_camera_feed.jpg";
     };
     if (isStreaming) {
       streamImg.src = API.getCameraStreamUrl(activeCameraId, detectionOverlayActive) + "&t=" + Date.now();
@@ -425,9 +425,9 @@ async function renderMultiCameraGrid() {
           <img
             id="grid-stream-${cam.id}"
             class="camera-tile-img"
-            src="${isStreaming ? (streamUrl + '&t=' + Date.now()) : '/frontend/assets/live_camera_feed.jpg'}"
+            src="${isStreaming ? (streamUrl + '&t=' + Date.now()) : '/assets/live_camera_feed.jpg'}"
             alt="Camera ${cam.id} Feed"
-            onerror="this.onerror=null; this.src='/frontend/assets/live_camera_feed.jpg';"
+            onerror="this.onerror=null; this.src='/assets/live_camera_feed.jpg';"
           />
           <div class="tile-badge-live">
             <span class="status-dot-green"></span>
@@ -589,7 +589,7 @@ function checkScreenVideo(camId) {
   if (img) {
     img.onerror = function() {
       this.onerror = null;
-      this.src = "/frontend/assets/live_camera_feed.jpg";
+      this.src = "/assets/live_camera_feed.jpg";
     };
     img.src = API.getCameraStreamUrl(currentCheckedCamId, detectionOverlayActive) + "&t=" + Date.now();
   }
@@ -1213,7 +1213,7 @@ async function handleModalVideoUpload(file) {
   document.querySelectorAll(".camera-tile-img, #live-stream-image").forEach(img => {
     if (img && img.src && !img.src.includes("live_camera_feed.jpg") && img.src.length > 5) {
       pausedStreams.push({ el: img, src: img.src });
-      img.src = "/frontend/assets/live_camera_feed.jpg";
+      img.src = "/assets/live_camera_feed.jpg";
     }
   });
 
@@ -1486,14 +1486,14 @@ function pauseBackgroundStreams() {
   const singleImg = document.getElementById("live-stream-image");
   if (singleImg && singleImg.src && !singleImg.src.endsWith("live_camera_feed.jpg")) {
     singleImg.dataset.pausedSrc = singleImg.src;
-    singleImg.src = "/frontend/assets/live_camera_feed.jpg";
+    singleImg.src = "/assets/live_camera_feed.jpg";
   }
 
   // Detach all grid streams
   document.querySelectorAll(".camera-tile-img").forEach(img => {
     if (img && img.src && !img.src.endsWith("live_camera_feed.jpg")) {
       img.dataset.pausedSrc = img.src;
-      img.src = "/frontend/assets/live_camera_feed.jpg";
+      img.src = "/assets/live_camera_feed.jpg";
     }
   });
   console.log("[LiveMonitoring] Tab hidden: Released all streaming sockets to prevent connection starvation.");
