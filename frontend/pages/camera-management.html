@@ -216,7 +216,7 @@
             <span style="font-size:12px; color:#64748B;">Select any street to jump directly into historical &amp; live traffic analysis</span>
           </div>
           <div style="padding: 16px 20px;">
-            <div id="streets-cards-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;">
+            <div id="streets-cards-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 18px;">
               <!-- Dynamically populated street cards -->
               <div style="text-align:center; padding: 24px; color:#64748B;">Loading registered streets...</div>
             </div>
@@ -369,64 +369,91 @@
     </div>
   </div>
 
-  <!-- Create Street / Road Modal -->
+  <!-- Create Street & Group Roads Modal ("Roads are in One") -->
   <div id="add-street-modal" class="modal-backdrop">
-    <div class="modal-content" style="max-width: 540px;">
+    <div class="modal-content" style="max-width: 580px;">
       <div class="modal-header">
         <div style="display:flex; align-items:center; gap:10px;">
-          <div style="width:36px; height:36px; border-radius:8px; background:#EFF6FF; color:#2563EB; display:flex; align-items:center; justify-content:center;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 19L8 5"/><path d="M16 5l4 14"/><path d="M12 4v4"/><path d="M12 11v4"/><path d="M12 18v2"/></svg>
+          <div style="width:38px; height:38px; border-radius:8px; background:#EFF6FF; color:#2563EB; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 19L8 5"/><path d="M16 5l4 14"/><path d="M12 4v4"/><path d="M12 11v4"/><path d="M12 18v2"/></svg>
           </div>
           <div>
-            <h3 style="font-size:16px; margin:0; font-weight:700; color:#0F172A;">Create Road / Street Approach</h3>
-            <p style="font-size:12px; color:#64748B; margin:2px 0 0;">Define a traffic corridor to easily analyze flow, speed &amp; density.</p>
+            <h3 style="font-size:16px; margin:0; font-weight:700; color:#0F172A;">Create Street &amp; Group Roads</h3>
+            <p style="font-size:12px; color:#64748B; margin:2px 0 0;">Define a Street (e.g. Gandhi Chowk) and group multiple approach roads in one place.</p>
           </div>
         </div>
         <button class="modal-close-btn" onclick="closeAddStreetModal()">✕</button>
       </div>
-      <div class="modal-body" style="padding: 20px;">
+      <div class="modal-body" style="padding: 20px; max-height: 75vh; overflow-y: auto;">
+        <!-- Street Name -->
         <div class="form-group" style="margin-bottom:14px;">
-          <label class="form-label" style="font-weight:600; color:#1E293B; margin-bottom:5px;">Street / Road Name *</label>
-          <input type="text" id="new-street-name" class="form-control" placeholder="e.g. NH48 South Express Corridor, MG Road West" required>
+          <label class="form-label" style="font-weight:600; color:#1E293B; margin-bottom:5px;">Street / Intersection Name *</label>
+          <input type="text" id="new-street-name" class="form-control" placeholder="e.g. Gandhi Chowk, NH4 Main Crossing, MG Road Corridor" required>
         </div>
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:14px;">
+
+        <!-- Location & Speed Limit -->
+        <div style="display:grid; grid-template-columns: 1.4fr 1fr; gap:12px; margin-bottom:14px;">
           <div class="form-group">
-            <label class="form-label" style="font-weight:600; color:#1E293B; margin-bottom:5px;">Approach Direction</label>
-            <select id="new-street-direction" class="form-select">
-              <option value="Northbound">Northbound (North Approach)</option>
-              <option value="Southbound">Southbound (South Approach)</option>
-              <option value="Eastbound">Eastbound (East Approach)</option>
-              <option value="Westbound">Westbound (West Approach)</option>
-              <option value="Inbound">Inbound (To City Center)</option>
-              <option value="Outbound">Outbound (To Highway)</option>
-            </select>
+            <label class="form-label" style="font-weight:600; color:#1E293B; margin-bottom:5px;">Physical Location / Area</label>
+            <input type="text" id="new-street-loc" class="form-control" placeholder="e.g. Kodoli, Sector 5 Downtown">
           </div>
           <div class="form-group">
             <label class="form-label" style="font-weight:600; color:#1E293B; margin-bottom:5px;">Speed Limit (km/h)</label>
             <input type="number" id="new-street-speed" class="form-control" value="60" min="20" max="140">
           </div>
         </div>
-        <div class="form-group" style="margin-bottom:14px;">
-          <label class="form-label" style="font-weight:600; color:#1E293B; margin-bottom:5px;">Physical Location / Junction</label>
-          <input type="text" id="new-street-loc" class="form-control" placeholder="e.g. Central Highway Flyover, Sector 5 Crossing">
+
+        <!-- ROADS IN THIS STREET (ALL IN ONE) -->
+        <div class="form-group" style="margin-bottom:16px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <label class="form-label" style="font-weight:700; color:#0F172A; margin:0; display:flex; align-items:center; gap:5px;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2.2"><path d="M4 19L8 5"/><path d="M16 5l4 14"/><path d="M12 4v4"/><path d="M12 11v4"/><path d="M12 18v2"/></svg>
+              Select Roads in this Street (All in One) *
+            </label>
+            <div style="font-size:11px; display:flex; gap:8px;">
+              <a href="javascript:void(0)" onclick="toggleAllStreetCheckboxes(true)" style="color:#2563EB; font-weight:600; text-decoration:none;">Select All</a>
+              <span style="color:#CBD5E1;">|</span>
+              <a href="javascript:void(0)" onclick="toggleAllStreetCheckboxes(false)" style="color:#64748B; font-weight:600; text-decoration:none;">Clear</a>
+            </div>
+          </div>
+          <p style="font-size:11.5px; color:#64748B; margin:0 0 8px;">Check all camera approach roads that belong to this street/intersection:</p>
+          <div id="street-roads-checkboxes" style="display:flex; flex-direction:column; gap:8px; max-height:170px; overflow-y:auto; padding:10px; background:#F8FAFC; border:1.5px solid #E2E8F0; border-radius:8px;">
+            <!-- Dynamically populated camera roads -->
+          </div>
         </div>
-        <div class="form-group" style="margin-bottom:14px;">
-          <label class="form-label" style="font-weight:600; color:#1E293B; margin-bottom:5px;">Assign Camera Node</label>
-          <select id="new-street-camera-select" class="form-select">
-            <option value="new">+ Create New Camera Node for this Street</option>
-          </select>
-        </div>
-        <div class="form-group" style="margin-bottom:14px;">
-          <label class="form-label" style="font-weight:600; color:#1E293B; margin-bottom:5px;">Initial Video Stream Source</label>
-          <select id="new-street-video-select" class="form-select">
-            <option value="">Select uploaded video or live link...</option>
-          </select>
-        </div>
+
+        <!-- OPTIONAL: ADD AN EXTRA ROAD TO THIS STREET -->
+        <details style="background:#F1F5F9; border-radius:8px; padding:10px 14px; margin-bottom:10px;">
+          <summary style="font-size:12.5px; font-weight:700; color:#334155; cursor:pointer;">+ Create a New Road directly in this Street</summary>
+          <div style="margin-top:12px; display:flex; flex-direction:column; gap:10px;">
+            <div class="form-group">
+              <label style="font-size:11.5px; font-weight:600; color:#475569;">New Road Approach Name</label>
+              <input type="text" id="new-street-custom-road-name" class="form-control" placeholder="e.g. Northeast Bypass Approach">
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+              <div class="form-group">
+                <label style="font-size:11.5px; font-weight:600; color:#475569;">Direction</label>
+                <select id="new-street-direction" class="form-select">
+                  <option value="Northbound">Northbound (North Approach)</option>
+                  <option value="Southbound">Southbound (South Approach)</option>
+                  <option value="Eastbound">Eastbound (East Approach)</option>
+                  <option value="Westbound">Westbound (West Approach)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label style="font-size:11.5px; font-weight:600; color:#475569;">Video Stream Source</label>
+                <select id="new-street-video-select" class="form-select">
+                  <option value="">Select video source...</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </details>
       </div>
       <div class="modal-footer" style="padding:14px 20px; border-top:1px solid #E2E8F0; display:flex; justify-content:flex-end; gap:10px;">
         <button class="btn btn-outline" onclick="closeAddStreetModal()">Cancel</button>
-        <button id="save-street-btn" class="btn btn-primary" onclick="submitCreateStreet()" style="background:#2563EB; font-weight:600;">
-          Create &amp; Start Traffic Analysis
+        <button id="save-street-btn" class="btn btn-primary" onclick="submitCreateStreet()" style="background:#2563EB; font-weight:700; padding:8px 18px;">
+          Save Street &amp; Group Roads
         </button>
       </div>
     </div>

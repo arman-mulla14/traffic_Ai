@@ -7,6 +7,20 @@ def utc_now():
     """Generates timezone-aware UTC datetime replacing deprecated datetime.utcnow."""
     return datetime.now(timezone.utc)
 
+class Street(Base):
+    """
+    TABLE: streets
+    Stores streets and intersections that group multiple roads together in one place.
+    """
+    __tablename__ = "streets"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(150), nullable=False, unique=True, index=True)  # e.g. "Gandhi Chowk"
+    location = Column(String(255), nullable=True)                        # e.g. "Kodoli"
+    description = Column(String(255), nullable=True)
+    speed_limit = Column(Integer, default=60)                            # default km/h
+    created_at = Column(DateTime, default=utc_now, index=True)
+
 class Camera(Base):
     """
     TABLE 1: cameras
@@ -17,6 +31,7 @@ class Camera(Base):
     id = Column(Integer, primary_key=True, index=True)
     camera_name = Column(String(120), nullable=False, index=True)
     location = Column(String(255), nullable=False)
+    street_name = Column(String(150), nullable=True, default="Gandhi Chowk")  # Associated street (groups multiple roads)
     road_name = Column(String(150), nullable=True)  # Associated street or intersection road approach
     direction = Column(String(50), default="Northbound")  # Northbound, Southbound, Eastbound, Westbound
     speed_limit = Column(Integer, default=60)  # km/h
