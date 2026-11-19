@@ -864,13 +864,25 @@
             </div>
           </div>
 
-          <!-- Multi-Camera Control Strip -->
-          <div style="display: flex; justify-content: space-between; align-items: center; background: #FFFFFF; border: 1px solid #E2E8F0; padding: 12px 18px; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); flex-wrap: wrap; gap: 10px;">
-            <div style="display: flex; align-items: center; gap: 12px;">
+          <!-- Multi-Camera Control Strip with Street View Option -->
+          <div style="display: flex; justify-content: space-between; align-items: center; background: #FFFFFF; border: 1px solid #E2E8F0; padding: 12px 18px; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); flex-wrap: wrap; gap: 12px;">
+            <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
               <span class="status-dot-green"></span>
-              <strong style="color: #0F172A; font-size: 14px;" id="grid-status-header">Real-Time 4-Road Intersection Camera Feeds</strong>
+              <strong style="color: #0F172A; font-size: 14px;" id="grid-status-header">Real-Time Road Feeds</strong>
               <span class="badge badge-info" id="grid-cameras-count-badge">4 Streams Active</span>
-              <span style="color: #64748B; font-size: 12px;">YOLOv8 Dynamic Traffic Estimation Active</span>
+
+              <!-- STREET-ORIENTED VIEW SELECTOR (View Street & show all roads in street) -->
+              <div style="display: flex; align-items: center; gap: 8px; margin-left: 8px;">
+                <label for="live-street-filter" style="font-size: 13px; font-weight: 700; color: #1E293B; display: flex; align-items: center; gap: 5px; white-space: nowrap;">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2.2"><path d="M4 19L8 5"/><path d="M16 5l4 14"/><path d="M12 4v4"/><path d="M12 11v4"/><path d="M12 18v2"/></svg>
+                  View Street:
+                </label>
+                <select id="live-street-filter" onchange="filterLiveByStreet(this.value)" class="form-select" style="min-width: 250px; font-weight: 700; font-size: 13px; color: #0F172A; border: 1.5px solid #2563EB; background: #EFF6FF; border-radius: 8px; padding: 6px 12px; cursor: pointer; outline: none;">
+                  <option value="all">All Streets &amp; Roads (All Feeds)</option>
+                  <option value="Gandhi Chowk" selected>Gandhi Chowk (4 Roads)</option>
+                  <option value="MG Road Express Corridor">MG Road Express Corridor (2 Roads)</option>
+                </select>
+              </div>
             </div>
             <div style="display: flex; gap: 8px;">
               <button class="btn btn-sm btn-outline" onclick="refreshGridFeeds()">
@@ -880,6 +892,43 @@
               <button class="btn btn-sm btn-primary" onclick="openNewCameraModal()">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                 + Connect Another Camera
+              </button>
+            </div>
+          </div>
+
+          <!-- Dynamic Street Information Banner (Shows all roads grouped in this street) -->
+          <div id="live-street-banner" style="background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); color: #FFFFFF; border-radius: 12px; padding: 14px 20px; margin-top: 14px; margin-bottom: 6px; box-shadow: 0 3px 8px rgba(15, 23, 42, 0.15); border-left: 5px solid #2563EB; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+            <div style="display: flex; align-items: center; gap: 14px;">
+              <div style="background: rgba(37, 99, 235, 0.2); border: 1px solid rgba(59, 130, 246, 0.5); border-radius: 10px; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: #60A5FA; flex-shrink: 0;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19L8 5"/><path d="M16 5l4 14"/><path d="M12 4v4"/><path d="M12 11v4"/><path d="M12 18v2"/></svg>
+              </div>
+              <div>
+                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                  <span style="font-size: 17px; font-weight: 800; color: #FFFFFF;" id="live-street-banner-name">Gandhi Chowk</span>
+                  <span class="badge" style="background: #2563EB; color: #FFFFFF; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px;" id="live-street-roads-count-badge">4 Roads Grouped in this Street</span>
+                  <span class="badge" style="background: #059669; color: #FFFFFF; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px;" id="live-street-congestion-badge">FREE FLOW</span>
+                </div>
+                <div style="font-size: 12.5px; color: #94A3B8; margin-top: 3px;" id="live-street-banner-desc">
+                  Location: <strong style="color: #E2E8F0;" id="live-street-banner-loc">Kodoli Crossing</strong> • Showing all approach roads in this street simultaneously
+                </div>
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 18px; flex-wrap: wrap;">
+              <div style="text-align: right;">
+                <div style="font-size: 11px; color: #94A3B8; text-transform: uppercase; font-weight: 600;">Total Street Traffic</div>
+                <div style="font-size: 18px; font-weight: 800; color: #38BDF8;" id="live-street-banner-vehicles">1,374 Vehicles</div>
+              </div>
+              <div style="text-align: right;">
+                <div style="font-size: 11px; color: #94A3B8; text-transform: uppercase; font-weight: 600;">Average Density</div>
+                <div style="font-size: 18px; font-weight: 800; color: #34D399;" id="live-street-banner-density">23.8%</div>
+              </div>
+              <div style="text-align: right;">
+                <div style="font-size: 11px; color: #94A3B8; text-transform: uppercase; font-weight: 600;">Speed Limit</div>
+                <div style="font-size: 18px; font-weight: 800; color: #FBBF24;" id="live-street-banner-speed">60 km/h</div>
+              </div>
+              <button type="button" onclick="jumpToStreetAnalytics()" class="btn btn-sm btn-outline" style="color: #60A5FA; border-color: #3B82F6; background: rgba(59, 130, 246, 0.12); font-weight: 600; padding: 6px 12px; display: flex; align-items: center; gap: 5px;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                Analyze Street
               </button>
             </div>
           </div>

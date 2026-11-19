@@ -12,7 +12,7 @@ from sqlalchemy import func
 
 from app.config import settings
 from app.database.connection import get_db
-from app.database.models import Video, Analysis, Camera, TrafficRecord, Incident
+from app.database.models import Video, Analysis, Camera, TrafficRecord, Incident, Street
 from app.schemas.schemas import (
     VideoResponse, AnalysisResponse, CameraCreate, CameraUpdate, CameraResponse,
     VideoUrlCreate, CameraStreamUpdate
@@ -393,15 +393,16 @@ def delete_camera(id: int, db: Session = Depends(get_db)):
 # =============================================================================
 
 @router.get("/streets")
-def list_streets(db: Session = Depends(get_db)):
+def list_streets(flat: bool = Query(False), db: Session = Depends(get_db)):
     """
-    Returns registered streets / road corridors with real traffic aggregates
-    (vehicle count, avg density, incidents, speed limit) for easy traffic analysis.
+    Returns registered streets and all roads grouped inside each street ("roads are in one").
+    If flat=True, returns flat list of individual road approaches for backwards compatibility.
     """
-    cameras = db.query(Camera).order_by(Camera.id.asc()).all()
-    streets = []
-    for cam in cameras:
-        # Aggregate real traffic metrics for this street
+    all_cameras = db.query(Camera).order_by(Camera.id.asc()).all()
+
+    # Pre-aggregate real traffic metrics per camera
+    cam_metrics = {}
+    for cam in all_cameras:
         tr_agg = db.query(
             func.sum(TrafficRecord.total_vehicles),
             func.avg(TrafficRecord.traffic_density),
@@ -414,7 +415,6 @@ def list_streets(db: Session = Depends(get_db)):
         avg_d = round(float(tr_agg[1] or 0.0), 1)
         rec_c = tr_agg[2] or 0
 
-        # Congestion classification
         if avg_d < 30.0:
             cong = "FREE FLOW"
         elif avg_d < 60.0:
@@ -426,10 +426,11 @@ def list_streets(db: Session = Depends(get_db)):
 
         r_name = cam.road_name or f"Road #{cam.id} Approach"
 
-        streets.append({
+        cam_metrics[cam.id] = {
             "id": cam.id,
             "camera_id": cam.id,
-            "street_name": r_name,
+            "street_name": cam.street_name or "Gandhi Chowk",
+            "road_name": r_name,
             "display_name": r_name.split(" [")[0],
             "direction": cam.direction or "Northbound",
             "location": cam.location,
@@ -443,77 +444,201 @@ def list_streets(db: Session = Depends(get_db)):
             "total_incidents": inc_count,
             "total_records": rec_c,
             "created_at": cam.created_at.strftime("%Y-%m-%d %H:%M:%S") if cam.created_at else ""
-        })
+        }
 
-    return streets
+    if flat:
+        return list(cam_metrics.values())
+
+    # Group roads by street
+    db_streets = db.query(Street).order_by(Street.id.asc()).all()
+    street_map = {}
+    for s in db_streets:
+        street_map[s.name.strip().lower()] = {
+            "id": s.id,
+            "name": s.name,
+            "street_name": s.name,
+            "display_name": s.name,
+            "location": s.location or "Intersection",
+            "description": s.description or f"Street grouping multiple road approaches",
+            "speed_limit": s.speed_limit or 60,
+            "roads": [],
+            "total_roads": 0,
+            "total_vehicles": 0,
+            "avg_density": 0.0,
+            "total_incidents": 0,
+            "congestion_level": "FREE FLOW",
+            "camera_id": 1,
+            "direction": "Intersection"
+        }
+
+    # Assign each camera road to its street
+    for cam_id, m in cam_metrics.items():
+        s_key = (m["street_name"] or "Gandhi Chowk").strip().lower()
+        if s_key not in street_map:
+            street_map[s_key] = {
+                "id": len(street_map) + 1,
+                "name": m["street_name"] or "Gandhi Chowk",
+                "street_name": m["street_name"] or "Gandhi Chowk",
+                "display_name": m["street_name"] or "Gandhi Chowk",
+                "location": m["location"] or "Intersection",
+                "description": f"Street grouping road approaches for {m['street_name']}",
+                "speed_limit": m["speed_limit"] or 60,
+                "roads": [],
+                "total_roads": 0,
+                "total_vehicles": 0,
+                "avg_density": 0.0,
+                "total_incidents": 0,
+                "congestion_level": "FREE FLOW",
+                "camera_id": cam_id,
+                "direction": "Intersection"
+            }
+        street_map[s_key]["roads"].append(m)
+
+    # Compute street-level aggregates
+    result_streets = []
+    for s_info in street_map.values():
+        roads = s_info["roads"]
+        s_info["total_roads"] = len(roads)
+        if roads:
+            s_info["camera_id"] = roads[0]["camera_id"]
+            s_info["total_vehicles"] = sum(r["total_vehicles"] for r in roads)
+            s_info["avg_density"] = round(sum(r["avg_density"] for r in roads) / len(roads), 1)
+            s_info["total_incidents"] = sum(r["total_incidents"] for r in roads)
+            avg_d = s_info["avg_density"]
+            if avg_d < 30.0:
+                s_info["congestion_level"] = "FREE FLOW"
+            elif avg_d < 60.0:
+                s_info["congestion_level"] = "MODERATE"
+            elif avg_d < 80.0:
+                s_info["congestion_level"] = "CONGESTED"
+            else:
+                s_info["congestion_level"] = "HEAVY JAM"
+            dirs = [r["direction"].replace("bound", "") for r in roads if r.get("direction")]
+            s_info["direction"] = f"{len(roads)} Roads ({', '.join(dirs)})"
+        result_streets.append(s_info)
+
+    return result_streets
 
 @router.post("/streets")
 def create_street(
     street_name: str = Body(..., embed=True),
-    direction: str = Body("Northbound", embed=True),
-    location: str = Body("City Corridor", embed=True),
+    location: str = Body("Kodoli", embed=True),
     speed_limit: int = Body(60, embed=True),
+    description: Optional[str] = Body(None, embed=True),
+    camera_ids: Optional[List[int]] = Body(None, embed=True),
+    new_roads: Optional[List[dict]] = Body(None, embed=True),
+    direction: Optional[str] = Body("Northbound", embed=True),
     stream_url: Optional[str] = Body(None, embed=True),
     camera_id: Optional[int] = Body(None, embed=True),
     db: Session = Depends(get_db)
 ):
     """
-    Creates a new street / road approach and assigns or creates a camera node for it.
+    Creates or updates a Street that groups multiple roads in one place ("roads are in one").
+    Assigns cameras/roads to this street.
     """
     from datetime import datetime, timezone
     now_dt = datetime.now(timezone.utc)
+
+    clean_name = street_name.strip()
+    st = db.query(Street).filter(func.lower(Street.name) == clean_name.lower()).first()
+    if not st:
+        st = Street(
+            name=clean_name,
+            location=location,
+            description=description or f"Street intersection grouping approach roads for {clean_name}",
+            speed_limit=speed_limit
+        )
+        db.add(st)
+        db.commit()
+        db.refresh(st)
+    else:
+        st.location = location
+        st.speed_limit = speed_limit
+        if description:
+            st.description = description
+        db.commit()
+
+    assigned_cams = []
+
+    c_ids_to_assign = set()
+    if camera_ids and isinstance(camera_ids, list):
+        c_ids_to_assign.update(camera_ids)
     if camera_id:
-        cam = db.query(Camera).filter(Camera.id == camera_id).first()
+        c_ids_to_assign.add(camera_id)
+
+    for cid in c_ids_to_assign:
+        cam = db.query(Camera).filter(Camera.id == cid).first()
         if cam:
-            cam.road_name = street_name
-            cam.direction = direction
+            cam.street_name = clean_name
             cam.location = location
             cam.speed_limit = speed_limit
-            if stream_url:
-                cam.stream_url = stream_url
+            if not cam.road_name:
+                cam.road_name = f"{clean_name} - {cam.direction or 'Approach'}"
             db.commit()
-            db.refresh(cam)
-            return {"status": "success", "message": f"Updated street for Camera #{cam.id}", "camera_id": cam.id}
+            assigned_cams.append(cam.id)
 
-    # Create new Camera endpoint for this street
-    new_cam = Camera(
-        camera_name=f"{street_name} [Cam Node]",
-        location=location,
-        road_name=street_name,
-        direction=direction,
-        speed_limit=speed_limit,
-        camera_type="CCTV",
-        stream_url=stream_url or "0",
-        status="ACTIVE"
-    )
-    db.add(new_cam)
-    db.commit()
-    db.refresh(new_cam)
+    if new_roads and isinstance(new_roads, list):
+        for nr in new_roads:
+            r_name = nr.get("road_name") or f"{clean_name} Road"
+            r_dir = nr.get("direction") or "Northbound"
+            r_stream = nr.get("stream_url") or "0"
+            nc = Camera(
+                camera_name=f"{r_name} [Cam Node]",
+                location=location,
+                street_name=clean_name,
+                road_name=r_name,
+                direction=r_dir,
+                speed_limit=speed_limit,
+                camera_type="CCTV",
+                stream_url=r_stream,
+                status="ACTIVE"
+            )
+            db.add(nc)
+            db.commit()
+            db.refresh(nc)
+            init_tr = TrafficRecord(
+                analysis_id=1,
+                camera_id=nc.id,
+                road_name=r_name,
+                car_count=10,
+                motorcycle_count=4,
+                bus_count=2,
+                truck_count=1,
+                total_vehicles=17,
+                traffic_density=16.0,
+                queue_length=1,
+                direction=r_dir,
+                timestamp=now_dt
+            )
+            db.add(init_tr)
+            db.commit()
+            assigned_cams.append(nc.id)
 
-    # Add initial baseline traffic record so analytics immediately works
-    init_tr = TrafficRecord(
-        analysis_id=1,
-        camera_id=new_cam.id,
-        road_name=street_name,
-        car_count=12,
-        motorcycle_count=4,
-        bus_count=2,
-        truck_count=1,
-        total_vehicles=19,
-        traffic_density=18.5,
-        queue_length=1,
-        direction=direction,
-        timestamp=now_dt
-    )
-    db.add(init_tr)
-    db.commit()
+    if not assigned_cams:
+        default_road_name = f"{clean_name} - {direction}"
+        nc = Camera(
+            camera_name=f"{default_road_name} [Cam Node]",
+            location=location,
+            street_name=clean_name,
+            road_name=default_road_name,
+            direction=direction,
+            speed_limit=speed_limit,
+            camera_type="CCTV",
+            stream_url=stream_url or "0",
+            status="ACTIVE"
+        )
+        db.add(nc)
+        db.commit()
+        db.refresh(nc)
+        assigned_cams.append(nc.id)
 
     return {
         "status": "success",
-        "message": f"Created Street '{street_name}' successfully",
-        "camera_id": new_cam.id,
-        "road_name": new_cam.road_name,
-        "direction": new_cam.direction
+        "message": f"Street '{clean_name}' configured with {len(assigned_cams)} roads",
+        "street_id": st.id,
+        "street_name": st.name,
+        "assigned_cameras": assigned_cams,
+        "total_roads": len(assigned_cams)
     }
 
 @router.post("/cameras/{id}/set-stream")
@@ -952,7 +1077,11 @@ def stream_camera(id: int, overlay: bool = Query(True), db: Session = Depends(ge
                    b'Content-Type: image/jpeg\r\n\r\n' + buffer.tobytes() + b'\r\n')
             time.sleep(0.035)  # ~28 FPS smooth playback
 
-        cap.release()
+        if cap is not None:
+            try:
+                cap.release()
+            except Exception:
+                pass
 
     return StreamingResponse(frame_generator(), media_type="multipart/x-mixed-replace; boundary=frame")
 

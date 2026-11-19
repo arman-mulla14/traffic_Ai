@@ -207,9 +207,10 @@ const API = {
   },
 
   // Streets & Road Corridors
-  async listStreets() {
+  async listStreets(flat = false) {
     try {
-      const res = await fetch(`${API_BASE}/api/streets`);
+      const url = flat ? `${API_BASE}/api/streets?flat=true` : `${API_BASE}/api/streets`;
+      const res = await fetch(url);
       if (!res.ok) throw new Error("Failed to list streets");
       return await res.json();
     } catch (e) {

@@ -49,9 +49,34 @@ function initLiveClock() {
   setInterval(update, 1000);
 }
 
-function initRoadFilter() {
+async function initRoadFilter() {
   const roadFilter = document.getElementById("dashboard-road-filter");
   if (!roadFilter) return;
+
+  try {
+    const streets = await API.listStreets();
+    if (streets && streets.length > 0) {
+      const cur = roadFilter.value;
+      let optHtml = `<option value="all">All Roads &amp; Streets (Full Intersection)</option>`;
+      streets.forEach(s => {
+        if (s.roads && s.roads.length > 0) {
+          optHtml += `<optgroup label="Street: ${s.name} (${s.roads.length} Roads - ${s.location || 'Intersection'})">`;
+          s.roads.forEach(r => {
+            ROAD_NAMES[String(r.camera_id)] = r.road_name || r.display_name;
+            optHtml += `<option value="${r.camera_id}">Road ${r.camera_id}: ${r.road_name || r.display_name} (${r.direction})</option>`;
+          });
+          optHtml += `</optgroup>`;
+        } else {
+          ROAD_NAMES[String(s.camera_id)] = s.street_name || s.name;
+          optHtml += `<option value="${s.camera_id}">Street: ${s.name} (${s.direction})</option>`;
+        }
+      });
+      roadFilter.innerHTML = optHtml;
+      if (cur) roadFilter.value = cur;
+    }
+  } catch (e) {
+    console.warn("Could not load dynamic streets:", e);
+  }
 
   roadFilter.addEventListener("change", () => {
     updateRoadViewUI(roadFilter.value);

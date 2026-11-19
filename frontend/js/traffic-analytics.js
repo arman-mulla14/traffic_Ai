@@ -11,8 +11,7 @@ let analyticsChart3 = null;
 let analyticsForecastChart = null;
 
 document.addEventListener("DOMContentLoaded", () => {
-  loadAnalytics();
-  loadAIIntelligence();
+  initAnalyticsRoadFilter();
 
   // Road Approach Selector Listener
   const roadFilter = document.getElementById("analytics-road-filter");
@@ -92,6 +91,57 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
+
+async function initAnalyticsRoadFilter() {
+  const roadFilter = document.getElementById("analytics-road-filter");
+  if (!roadFilter) {
+    loadAnalytics();
+    loadAIIntelligence();
+    return;
+  }
+
+  try {
+    const streets = await API.listStreets();
+    if (streets && streets.length > 0) {
+      const cur = roadFilter.value;
+      const urlParams = new URLSearchParams(window.location.search);
+      const paramStreet = urlParams.get("street");
+      const paramCam = urlParams.get("camera") || urlParams.get("road");
+
+      let optionsHtml = `<option value="all">All Roads &amp; Streets (Full Intersection)</option>`;
+      
+      streets.forEach(s => {
+        if (s.roads && s.roads.length > 0) {
+          optionsHtml += `<optgroup label="Street: ${s.name} (${s.roads.length} Roads - ${s.location || 'Intersection'})">`;
+          s.roads.forEach(r => {
+            optionsHtml += `<option value="${r.camera_id}">Road ${r.camera_id}: ${r.road_name || r.display_name} (${r.direction})</option>`;
+          });
+          optionsHtml += `</optgroup>`;
+        } else {
+          optionsHtml += `<option value="${s.camera_id}">Street: ${s.name} (${s.direction})</option>`;
+        }
+      });
+
+      roadFilter.innerHTML = optionsHtml;
+
+      if (paramCam) {
+        roadFilter.value = paramCam;
+      } else if (paramStreet) {
+        const foundStreet = streets.find(s => s.name.toLowerCase() === paramStreet.toLowerCase());
+        if (foundStreet && foundStreet.roads && foundStreet.roads.length > 0) {
+          roadFilter.value = foundStreet.roads[0].camera_id;
+        }
+      } else if (cur) {
+        roadFilter.value = cur;
+      }
+    }
+  } catch (e) {
+    console.warn("Could not load streets:", e);
+  }
+
+  loadAnalytics();
+  loadAIIntelligence();
+}
 
 function getSelectedRoadId() {
   const el = document.getElementById("analytics-road-filter");

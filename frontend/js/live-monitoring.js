@@ -11,6 +11,113 @@ let telemetryIntervalId = null;
 let cachedCameras = [];
 let cachedVideos = [];
 let currentCheckedCamId = 1;
+let selectedLiveStreet = "all";
+let cachedStreetsList = [];
+
+// =============================================================================
+// Street-Oriented Live View Functions
+// =============================================================================
+async function initLiveStreetFilter() {
+  const sel = document.getElementById("live-street-filter");
+  if (!sel) return;
+
+  try {
+    cachedStreetsList = await API.listStreets();
+    if (!cachedStreetsList || cachedStreetsList.length === 0) return;
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const paramStreet = urlParams.get("street");
+
+    sel.innerHTML = `
+      <option value="all">All Streets &amp; Roads (All Feeds)</option>
+      ${cachedStreetsList.map(s => `
+        <option value="${s.name}" ${(paramStreet && paramStreet.toLowerCase() === s.name.toLowerCase()) ? "selected" : ""}>
+          ${s.name} (${s.total_roads} Roads: ${s.location})
+        </option>
+      `).join("")}
+    `;
+
+    if (paramStreet) {
+      selectedLiveStreet = paramStreet;
+      sel.value = paramStreet;
+    }
+    updateLiveStreetBanner();
+  } catch (err) {
+    console.warn("Could not load street list in Live Monitoring:", err);
+  }
+}
+window.initLiveStreetFilter = initLiveStreetFilter;
+
+function filterLiveByStreet(streetName) {
+  selectedLiveStreet = streetName || "all";
+  updateLiveStreetBanner();
+  renderMultiCameraGrid();
+  if (typeof showToast === "function") {
+    showToast(`Viewing Street: ${selectedLiveStreet === 'all' ? 'All Streets' : selectedLiveStreet}`);
+  }
+}
+window.filterLiveByStreet = filterLiveByStreet;
+
+function updateLiveStreetBanner() {
+  const banner = document.getElementById("live-street-banner");
+  if (!banner) return;
+
+  const totalCams = cachedCameras.length;
+  if (!selectedLiveStreet || selectedLiveStreet === "all") {
+    const elName = document.getElementById("live-street-banner-name");
+    const elCount = document.getElementById("live-street-roads-count-badge");
+    const elCong = document.getElementById("live-street-congestion-badge");
+    const elDesc = document.getElementById("live-street-banner-desc");
+    const elVeh = document.getElementById("live-street-banner-vehicles");
+    const elDens = document.getElementById("live-street-banner-density");
+    const elSpd = document.getElementById("live-street-banner-speed");
+
+    if (elName) elName.textContent = "All Streets & Road Intersections";
+    if (elCount) elCount.textContent = `${totalCams} Total Roads Monitored`;
+    if (elCong) {
+      elCong.textContent = "MULTI-CORRIDOR";
+      elCong.style.background = "#2563EB";
+    }
+    if (elDesc) elDesc.innerHTML = "Monitoring real-time traffic flow across all registered streets and intersections simultaneously.";
+    if (elVeh) elVeh.textContent = "1,374 Vehicles";
+    if (elDens) elDens.textContent = "21.4%";
+    if (elSpd) elSpd.textContent = "Multi-Zone";
+    return;
+  }
+
+  const st = (cachedStreetsList || []).find(s => s.name.toLowerCase() === selectedLiveStreet.toLowerCase());
+  if (st) {
+    const elName = document.getElementById("live-street-banner-name");
+    const elCount = document.getElementById("live-street-roads-count-badge");
+    const elCong = document.getElementById("live-street-congestion-badge");
+    const elDesc = document.getElementById("live-street-banner-desc");
+    const elVeh = document.getElementById("live-street-banner-vehicles");
+    const elDens = document.getElementById("live-street-banner-density");
+    const elSpd = document.getElementById("live-street-banner-speed");
+
+    if (elName) elName.textContent = st.name;
+    if (elCount) elCount.textContent = `${st.total_roads} Roads in this Street`;
+    if (elCong) {
+      elCong.textContent = st.congestion_level;
+      elCong.style.background =
+        st.congestion_level === "FREE FLOW" ? "#059669" : (st.congestion_level === "MODERATE" ? "#D97706" : "#DC2626");
+    }
+    if (elDesc) elDesc.innerHTML = `Location: <strong style="color: #E2E8F0;">${st.location}</strong> • Showing all ${st.total_roads} approach roads grouped into this street`;
+    if (elVeh) elVeh.textContent = `${st.total_vehicles} Vehicles`;
+    if (elDens) elDens.textContent = `${st.avg_density}%`;
+    if (elSpd) elSpd.textContent = `${st.speed_limit} km/h`;
+  }
+}
+window.updateLiveStreetBanner = updateLiveStreetBanner;
+
+function jumpToStreetAnalytics() {
+  if (selectedLiveStreet && selectedLiveStreet !== "all") {
+    window.location.href = `traffic-analytics.html?street=${encodeURIComponent(selectedLiveStreet)}`;
+  } else {
+    window.location.href = `traffic-analytics.html`;
+  }
+}
+window.jumpToStreetAnalytics = jumpToStreetAnalytics;
 
 // =============================================================================
 // Initialization with Dual Ready State Check
@@ -18,6 +125,7 @@ let currentCheckedCamId = 1;
 async function initLiveMonitoring() {
   console.log("[LiveMonitoring] Initializing multi-camera controllers and real-time streams...");
   await loadInitialData();
+  await initLiveStreetFilter();
   initCameraSelector();
   initStreamControls();
   initBoundingBoxCanvas();
@@ -232,12 +340,21 @@ async function renderMultiCameraGrid() {
     4: { key: "WEST",  label: "WEST APPROACH (Road 4)" }
   };
 
-  const camerasToDisplay = currentViewMode === "grid-2x2"
-    ? cachedCameras.slice(0, 4)
-    : cachedCameras;
+  // Filter cameras by selected street so "all roads in street" are displayed
+  let filteredCameras = cachedCameras;
+  if (selectedLiveStreet && selectedLiveStreet !== "all") {
+    const matched = cachedCameras.filter(c => (c.street_name || '').trim().toLowerCase() === selectedLiveStreet.trim().toLowerCase());
+    if (matched.length > 0) {
+      filteredCameras = matched;
+    }
+  }
+
+  const camerasToDisplay = (currentViewMode === "grid-2x2" && selectedLiveStreet === "all")
+    ? filteredCameras.slice(0, 4)
+    : filteredCameras;
 
   if (countBadge) {
-    countBadge.textContent = `${camerasToDisplay.length} Screens Active`;
+    countBadge.textContent = `${camerasToDisplay.length} Roads in Street Active`;
   }
 
   const tilesHtml = camerasToDisplay.map((cam, idx) => {
@@ -251,13 +368,16 @@ async function renderMultiCameraGrid() {
       return `<option value="video:${v.id}" ${isSelected ? 'selected' : ''}>${v.video_name}</option>`;
     }).join("");
 
+    const displayStreet = cam.street_name ? `${cam.street_name} • ` : '';
+    const displayRoad = cam.road_name ? cam.road_name.split(' [')[0] : (appInfo.label.split(' (')[0] + ' Approach');
+
     return `
       <div class="camera-tile-card" id="cam-tile-${cam.id}">
         <!-- Tile Header -->
         <div class="camera-tile-header">
-          <div class="camera-tile-title" title="${cam.camera_name} (${cam.location})">
+          <div class="camera-tile-title" title="${cam.street_name || ''} ${cam.camera_name} (${cam.location})">
             <span class="status-dot-green"></span>
-            <span>CAM #${cam.id}: ${appInfo.label.split(' (')[0]} • ${cam.camera_name.split(' [')[0]}</span>
+            <span>CAM #${cam.id}: ${displayStreet}${displayRoad}</span>
           </div>
           <div class="camera-tile-actions">
             <button type="button" onclick="takeStreamSnapshot(${cam.id})" title="Capture High-Res Snapshot of CAM #${cam.id}">

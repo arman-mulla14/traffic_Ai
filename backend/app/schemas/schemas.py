@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field, model_validator, ConfigDict
 class CameraCreate(BaseModel):
     camera_name: str
     location: str
+    street_name: Optional[str] = None
     road_name: Optional[str] = None
     direction: Optional[str] = "Northbound"
     speed_limit: Optional[int] = 60
@@ -16,6 +17,7 @@ class CameraCreate(BaseModel):
 class CameraUpdate(BaseModel):
     camera_name: Optional[str] = None
     location: Optional[str] = None
+    street_name: Optional[str] = None
     road_name: Optional[str] = None
     direction: Optional[str] = None
     speed_limit: Optional[int] = None
@@ -27,6 +29,7 @@ class CameraResponse(BaseModel):
     id: int
     camera_name: str
     location: str
+    street_name: Optional[str] = None
     road_name: Optional[str] = None
     direction: Optional[str] = "Northbound"
     speed_limit: Optional[int] = 60
@@ -45,6 +48,32 @@ class CameraResponse(BaseModel):
         return self
 
     model_config = ConfigDict(from_attributes=True)
+
+class RoadItem(BaseModel):
+    camera_id: int
+    road_name: str
+    direction: str
+    camera_name: str
+    speed_limit: int = 60
+    camera_status: str = "ACTIVE"
+    stream_url: Optional[str] = None
+    total_vehicles: int = 0
+    avg_density: float = 0.0
+    congestion_level: str = "FREE FLOW"
+    total_incidents: int = 0
+
+class StreetResponse(BaseModel):
+    id: int
+    name: str
+    location: Optional[str] = None
+    description: Optional[str] = None
+    speed_limit: int = 60
+    total_roads: int = 0
+    total_vehicles: int = 0
+    avg_density: float = 0.0
+    congestion_level: str = "FREE FLOW"
+    roads: List[RoadItem] = []
+    created_at: Optional[str] = None
 
 # Video Schemas
 class VideoUrlCreate(BaseModel):
