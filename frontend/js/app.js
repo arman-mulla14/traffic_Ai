@@ -30,14 +30,14 @@ window.ICONS = ICONS;
 
 // Navigation items definition (Strict 8 items)
 const NAV_ITEMS = [
-  { id: "dashboard", label: "Dashboard", href: "/frontend/index.html", icon: "dashboard" },
-  { id: "videos", label: "Video Management", href: "/frontend/pages/video-management.html", icon: "video" },
-  { id: "monitoring", label: "Live Monitoring", href: "/frontend/pages/live-monitoring.html", icon: "monitoring" },
-  { id: "analytics", label: "Traffic Analytics", href: "/frontend/pages/traffic-analytics.html", icon: "analytics" },
-  { id: "incidents", label: "Incident Management", href: "/frontend/pages/incident-management.html", icon: "incident" },
-  { id: "cameras", label: "Camera Management", href: "/frontend/pages/camera-management.html", icon: "camera" },
-  { id: "reports", label: "Reports", href: "/frontend/pages/reports.html", icon: "reports" },
-  { id: "settings", label: "Settings", href: "/frontend/pages/settings.html", icon: "settings" }
+  { id: "dashboard", label: "Dashboard", href: "/index.html", icon: "dashboard" },
+  { id: "videos", label: "Video Management", href: "/pages/video-management.html", icon: "video" },
+  { id: "monitoring", label: "Live Monitoring", href: "/pages/live-monitoring.html", icon: "monitoring" },
+  { id: "analytics", label: "Traffic Analytics", href: "/pages/traffic-analytics.html", icon: "analytics" },
+  { id: "incidents", label: "Incident Management", href: "/pages/incident-management.html", icon: "incident" },
+  { id: "cameras", label: "Camera Management", href: "/pages/camera-management.html", icon: "camera" },
+  { id: "reports", label: "Reports", href: "/pages/reports.html", icon: "reports" },
+  { id: "settings", label: "Settings", href: "/pages/settings.html", icon: "settings" }
 ];
 
 document.addEventListener("DOMContentLoaded", () => {

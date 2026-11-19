@@ -3,8 +3,24 @@
  * Enterprise Fetch API wrapper connecting all 8 pages to FastAPI endpoints.
  */
 
-const API_BASE = window.location.origin;
+const isLocalhost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+const storedBackend = typeof localStorage !== "undefined" ? localStorage.getItem("TRAFFIC_AI_BACKEND_URL") : null;
+const defaultCloudflareTunnel = "https://replies-range-equal-safari.trycloudflare.com";
+const API_BASE = isLocalhost ? window.location.origin : (storedBackend || defaultCloudflareTunnel || window.location.origin);
 window.API_BASE = API_BASE;
+
+// Global helper to view or update backend tunnel/server
+window.setBackendUrl = function(newUrl) {
+  if (newUrl) {
+    localStorage.setItem("TRAFFIC_AI_BACKEND_URL", newUrl.trim().replace(/\/$/, ""));
+    console.log("[TrafficAI] Backend URL set to:", newUrl);
+    window.location.reload();
+  } else {
+    localStorage.removeItem("TRAFFIC_AI_BACKEND_URL");
+    console.log("[TrafficAI] Backend URL reset to default tunnel.");
+    window.location.reload();
+  }
+};
 
 const API = {
   // System Health
